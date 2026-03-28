@@ -1,5 +1,5 @@
 # Fire-Emblem-67-LT-Editor
-The modified version of the Lex Talionis Fire Emblem editor for usage with the Fire Emblem 67 project by Donlot.
+The modified version of the Lex Talionis Fire Emblem fangame maker for usage with the Fire Emblem 67 project by Donlot.
 
 ## BASE CHANGES BEFORE ALL FUTURE COMMITS
 ### === Unit Funds ===
