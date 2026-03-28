@@ -1,0 +1,4 @@
+Siegfried.items
+Siegfried.item[0] == 'Steel_Sword'
+unit.items[0] == 'Steel_Sword'
+unit.items[0]
