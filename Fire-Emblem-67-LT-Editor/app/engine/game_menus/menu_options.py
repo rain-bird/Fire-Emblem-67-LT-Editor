@@ -536,7 +536,8 @@ class StockValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
         super().draw(surf, x, y)
 
-        main_color, uses_color = self.get_color()
+        #main_color, uses_color = self.get_color()
+        main_color, uses_color = 'white', 'white'
         main_font = self.font
 
         stock_string = '--'

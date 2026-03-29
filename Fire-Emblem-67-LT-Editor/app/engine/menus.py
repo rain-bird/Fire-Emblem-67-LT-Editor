@@ -764,8 +764,10 @@ class Shop(Choice):
 
     def create_options(self, options, info_descs=None):
         self.options.clear()
+        print(options)
         for idx, option in enumerate(options):
             if self.stock:
+                print(self.stock)
                 option = menu_options.StockValueItemOption(idx, option, self.disp_value, self.stock[idx])
             else:
                 option = self.default_option(idx, option, self.disp_value)
