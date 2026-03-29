@@ -2986,7 +2986,19 @@ class ShopState(State):
                         #action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         stock_marker = '__shop_%s_%s' % (self.shop_id, item.nid)
                         action.do(action.SetGameVar(stock_marker, game.game_vars.get(stock_marker, 0) + 1))  # Remember that we bought one of this
+                        
+                        #Recreate the buy menu's item list in the proper format in order to pass it as an argument
+                        items = []
+                        for option in enumerate(self.buy_menu.options):
+                            try:
+                                items.append(option[1].item)
+                            except:
+                                #I couldn't figure out how to handle empty options so I just didn't
+                                print("",end='')
+                        
                         self.buy_menu.decrement_stock()
+                        #This is what makes items that have run out stock disappear
+                        self.buy_menu.create_options(items)
                         self.money_counter_disp.start(-value)
                         game.register_item(new_item)
                         if not item_funcs.inventory_full(self.unit, new_item):
@@ -3012,7 +3024,7 @@ class ShopState(State):
                         # No inventory space
                         get_sound_thread().play_sfx('Select 4')
                         self.current_msg = self.get_dialog(self.max_inventory_message)
-
+                        
             elif self.state == 'sell':
                 item = self.sell_menu.get_current()
                 if item:

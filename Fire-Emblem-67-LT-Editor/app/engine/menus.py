@@ -750,6 +750,20 @@ class Shop(Choice):
     def decrement_stock(self):
         if self.stock:
             self.options[self.current_index].stock -= 1
+            #Made it so the game actually updates the shop's stock value when it updates the visible value
+            #Since we remove items that have 0 stock, this is way more obnoxious than it should usually be!
+            
+            #Get the item nid from the currently selected option and use that as the key
+            item_key = self.options[self.current_index].item.nid
+            #Find what index would normally correspond to the option's item
+            level_var_name = "original_" + game.game_vars["_currentCastle"] + "_stock"
+            old_index = game.level_vars[level_var_name][item_key]
+            
+            #Find the difference between the index values and use it as a modifier to the stock decrement
+            offset = old_index - self.current_index
+            
+            #Finally decrement the shop stock value
+            self.stock[self.current_index + offset] -= 1
 
     def get_stock(self):
         if self.stock:
@@ -764,15 +778,60 @@ class Shop(Choice):
 
     def create_options(self, options, info_descs=None):
         self.options.clear()
-        print(options)
+        
+        #Get the original stock variable for this particular castle's armory
+        level_var_name = "original_" + game.game_vars["_currentCastle"] + "_stock"
+        
+        #If we aren't dealing with inventory items and this castle armory's original stock is uninitialized, initialize it
+        if self.stock and game.level_vars[level_var_name] == 0:
+            game.level_vars[level_var_name] = {}
+            #Makes each item within options into a key with a value corresponding to its original position
+            for option in enumerate(options):
+                game.level_vars[level_var_name][option[1].nid] = option[0]
+        
+        current_options = {}
+        if self.stock:
+            for option in enumerate(options):
+                current_options[option[0]] = option[1].nid
+        
         for idx, option in enumerate(options):
+            
+            offset = 0
+            #If we aren't dealing with unit the inventory, figure out what index we should be checking
             if self.stock:
-                print(self.stock)
-                option = menu_options.StockValueItemOption(idx, option, self.disp_value, self.stock[idx])
+                #Find what item currently corresponds to idx
+                item_key = current_options[idx]
+                #Find what idx would normally correspond to that item
+                old_index = game.level_vars[level_var_name][item_key]
+                #Find the difference between the idx values and use it as a modifier to the stock check
+                offset = old_index - idx
+                
+            index_to_check = idx + offset
+            #If we are dealing with a unit item or a shop item with more than 0 stock, add it to the shop screen
+            if self.stock == None or self.stock[index_to_check] > 0:
+                if self.stock:
+                    option = menu_options.StockValueItemOption(index_to_check, option, self.disp_value, self.stock[index_to_check])
+                else:
+                    option = self.default_option(idx, option, self.disp_value)
+                option.help_box = option.get_help_box()
+                self.options.append(option)
             else:
-                option = self.default_option(idx, option, self.disp_value)
-            option.help_box = option.get_help_box()
-            self.options.append(option)
+                game.level_vars['length_of_options'] -= 1
+        
+        #Immediately try to fill empty space with empty options to prevent weirdness with how the game draws the item box
+        if self.stock:
+            #Initialize 'length_of_options' if it hasn't been (I would've used a self attribute but those aren't saved)
+            if game.level_vars['length_of_options'] == 0:
+                game.level_vars['length_of_options'] = len(self.options)
+            #Check if there's too few options
+            if game.level_vars['length_of_options'] < 5:
+                amount_missing = 5 - game.level_vars['length_of_options']
+                i = 0
+                while i < amount_missing:
+                    #Appends the empty options
+                    self.options.append(menu_options.EmptyOption(len(self.options) + 1))
+                    game.level_vars['length_of_options'] += 1
+                    i += 1
 
         if self.hard_limit:
             for num in range(self.limit - len(options)):

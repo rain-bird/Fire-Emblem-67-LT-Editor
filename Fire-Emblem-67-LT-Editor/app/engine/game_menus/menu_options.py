@@ -536,8 +536,9 @@ class StockValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
         super().draw(surf, x, y)
 
-        #main_color, uses_color = self.get_color()
+        #Stock numbers now always display as white, because it annoyed me that items with stock could have a gray number
         main_color, uses_color = 'white', 'white'
+        #main_color, uses_color = self.get_color()
         main_font = self.font
 
         stock_string = '--'
