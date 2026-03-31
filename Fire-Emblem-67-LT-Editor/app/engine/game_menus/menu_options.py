@@ -505,6 +505,11 @@ class RepairValueItemOption(ValueItemOption):
         if width > 60:
             main_font = 'narrow'
         uses_font = 'text'
+        
+        #If the item has uses and they are less than full, make its name and uses white
+        if self.item.data.get('uses') is not None and self.item.data['starting_uses'] > self.item.data['uses']:
+            main_color = 'white'
+            uses_color = 'white'
         render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
 
         uses_string = '--'
@@ -536,7 +541,7 @@ class StockValueItemOption(ValueItemOption):
     def draw(self, surf, x, y):
         super().draw(surf, x, y)
 
-        #Stock numbers now always display as white, because it annoyed me that items with stock could have a gray number
+        #Stock numbers now always display as white, because it annoyed me that items that are in stock could have a gray number
         main_color, uses_color = 'white', 'white'
         #main_color, uses_color = self.get_color()
         main_font = self.font

@@ -733,6 +733,7 @@ class Inventory(Choice):
             option = menu_options.EmptyOption(len(self.options) + num)
             self.options.append(option)
 
+#Updated so items that are out of stock are automatically removed.
 class Shop(Choice):
     default_option = menu_options.ValueItemOption
 
@@ -750,20 +751,36 @@ class Shop(Choice):
     def decrement_stock(self):
         if self.stock:
             self.options[self.current_index].stock -= 1
-            #Made it so the game actually updates the shop's stock value when it updates the visible value
-            #Since we remove items that have 0 stock, this is way more obnoxious than it should usually be!
+            #Properly update the shop's stock
+            self.stock[self.current_index] -= 1#self.options[self.current_index].stock
             
-            #Get the item nid from the currently selected option and use that as the key
-            item_key = self.options[self.current_index].item.nid
-            #Find what index would normally correspond to the option's item
-            level_var_name = "original_" + game.game_vars["_currentCastle"] + "_stock"
-            old_index = game.level_vars[level_var_name][item_key]
+            #If decrementing the item's stock would make it 0, remove that item
+            if self.options[self.current_index].stock == 0:
+                #Remove the option
+                self.options.pop(self.current_index)
+                self.stock.pop(self.current_index)
+                
+                #Recreate the buy menu's item list in the proper format in order to pass it as an argument
+                items = []
+                for option in enumerate(self.options):
+                    try:
+                        items.append(option[1].item)
+                    except:
+                        #I couldn't figure out how to handle empty options so I just didn't
+                        print("",end='')
+                
+                #Update the options
+                self.create_options(items)
             
-            #Find the difference between the index values and use it as a modifier to the stock decrement
-            offset = old_index - self.current_index
-            
-            #Finally decrement the shop stock value
-            self.stock[self.current_index + offset] -= 1
+            #Set up the variable where we'll be saving the location of the initialized shop's data
+            #Index 0 of the variable will be the shop's items. Index 1 of the variable will be the shop's stock
+            testVar = "_" + game.game_vars['_currentCastle'] + "_initializedArmory"
+            game.level_vars[testVar] = [[],self.stock]
+            for option in enumerate(self.options):
+                try:
+                    game.level_vars[testVar][0].append(option[1].item.nid)
+                except:
+                    print("",end='')
 
     def get_stock(self):
         if self.stock:
@@ -779,44 +796,13 @@ class Shop(Choice):
     def create_options(self, options, info_descs=None):
         self.options.clear()
         
-        #Get the original stock variable for this particular castle's armory
-        level_var_name = "original_" + game.game_vars["_currentCastle"] + "_stock"
-        
-        #If we aren't dealing with inventory items and this castle armory's original stock is uninitialized, initialize it
-        if self.stock and game.level_vars[level_var_name] == 0:
-            game.level_vars[level_var_name] = {}
-            #Makes each item within options into a key with a value corresponding to its original position
-            for option in enumerate(options):
-                game.level_vars[level_var_name][option[1].nid] = option[0]
-        
-        current_options = {}
-        if self.stock:
-            for option in enumerate(options):
-                current_options[option[0]] = option[1].nid
-        
         for idx, option in enumerate(options):
-            
-            offset = 0
-            #If we aren't dealing with unit the inventory, figure out what index we should be checking
             if self.stock:
-                #Find what item currently corresponds to idx
-                item_key = current_options[idx]
-                #Find what idx would normally correspond to that item
-                old_index = game.level_vars[level_var_name][item_key]
-                #Find the difference between the idx values and use it as a modifier to the stock check
-                offset = old_index - idx
-                
-            index_to_check = idx + offset
-            #If we are dealing with a unit item or a shop item with more than 0 stock, add it to the shop screen
-            if self.stock == None or self.stock[index_to_check] > 0:
-                if self.stock:
-                    option = menu_options.StockValueItemOption(index_to_check, option, self.disp_value, self.stock[index_to_check])
-                else:
-                    option = self.default_option(idx, option, self.disp_value)
-                option.help_box = option.get_help_box()
-                self.options.append(option)
+                option = menu_options.StockValueItemOption(idx, option, self.disp_value, self.stock[idx])
             else:
-                game.level_vars['length_of_options'] -= 1
+                option = self.default_option(idx, option, self.disp_value)
+            option.help_box = option.get_help_box()
+            self.options.append(option)
         
         #Immediately try to fill empty space with empty options to prevent weirdness with how the game draws the item box
         if self.stock:

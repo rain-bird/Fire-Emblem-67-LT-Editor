@@ -553,6 +553,35 @@ def check_focus(unit: UnitObject, limit: Optional[int] = 3) -> int:
                 counter += 1
     return counter
 
+def check_broad_focus(unit: UnitObject, limit: Optional[int] = 3, tag: Optional[str] = '') -> int:
+    """
+    Counts the number of units within a specified distance from a given unit.
+
+    Args:
+        unit (UnitObject): The unit whose surroundings are being checked for other units.
+        limit (int, optional): The maximum distance within which other units are considered.
+            Defaults to 3.
+        tag (str, optional): Only units with the provided tag will be counted.
+            Defaults to not checking for a tag.
+
+    Returns:
+        int: The count of other units who have the (optionally) specified tag within the specified distance from the given unit.
+
+    Notes:
+        - Does not count self.
+    """
+    from app.engine import skill_system
+    from app.engine.game_state import game
+    counter = 0
+    if unit.position:
+        for other in game.units:
+            if other.position and \
+                    unit is not other and \
+                    utils.calculate_distance(unit.position, other.position) <= limit:
+                if tag in other.tags:
+                    counter += 1
+    return counter
+
 def check_flanked(unit: UnitObject) -> bool:
     """
     Checks if the given unit is flanked by enemy units.

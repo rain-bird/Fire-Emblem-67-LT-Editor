@@ -20,7 +20,6 @@ class ItemObject():
         self.name = name
 
         self.owner_nid = None
-        self.depositor = None #Used for creating the effect of unit-specific convoys
         self.desc = desc
 
         self.icon_nid = icon_nid
@@ -45,6 +44,10 @@ class ItemObject():
         self.command_item_uid = None
         self.command_item = None
         self.command_parent_item = None
+        
+        self.depositor = None #Used for creating the effect of unit-specific convoys
+        self.broken_nid = None #Used for broken items
+        self.broken_name = None #Used for broken items
 
     @property
     def tags(self) -> set:

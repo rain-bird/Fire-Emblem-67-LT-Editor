@@ -2982,23 +2982,8 @@ class ShopState(State):
                         get_sound_thread().play_sfx('GoldExchange')
                         #This is the same as before but we pass the unit instead of the current party.
                         action.do(action.GainMoney(self.unit, -value))
-                        #I doubt I'll ever need this, but it's sticking around as a comment just in case.
-                        #action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         stock_marker = '__shop_%s_%s' % (self.shop_id, item.nid)
-                        action.do(action.SetGameVar(stock_marker, game.game_vars.get(stock_marker, 0) + 1))  # Remember that we bought one of this
-                        
-                        #Recreate the buy menu's item list in the proper format in order to pass it as an argument
-                        items = []
-                        for option in enumerate(self.buy_menu.options):
-                            try:
-                                items.append(option[1].item)
-                            except:
-                                #I couldn't figure out how to handle empty options so I just didn't
-                                print("",end='')
-                        
                         self.buy_menu.decrement_stock()
-                        #This is what makes items that have run out stock disappear
-                        self.buy_menu.create_options(items)
                         self.money_counter_disp.start(-value)
                         game.register_item(new_item)
                         if not item_funcs.inventory_full(self.unit, new_item):
@@ -3219,11 +3204,11 @@ class RepairShopState(ShopState):
             if item:
                 value = item_funcs.repair_price(self.unit, item)
                 if value:
-                    if game.get_money() - value >= 0:
+                    if self.unit.personal_funds - value >= 0:
                         action.do(action.HasTraded(self.unit))
                         get_sound_thread().play_sfx('GoldExchange')
-                        action.do(action.GainMoney(game.current_party, -value))
-                        action.do(action.UpdateRecords('money', (game.current_party, -value)))
+                        action.do(action.GainMoney(self.unit, -value))
+                        #action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         self.money_counter_disp.start(-value)
                         action.do(action.RepairItem(item))
                         self.current_msg = self.get_dialog(self.buy_message)

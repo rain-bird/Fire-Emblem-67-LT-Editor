@@ -2920,6 +2920,21 @@ Flags:
     keyword_types = ["Unit", "ItemList", "ShopFlavor", "IntegerList", "Nid"]
     _flags = ["preview"]
 
+#Made it so the repair shop can be called in a more normal way.
+class RepairShop(EventCommand):
+    nid = 'repair_shop'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Causes *Unit* to enter the repair shop.
+
+Nothing special beyond that. The engine doesn't expect you to be able to access the repair shop outside the base.
+        """
+
+    keywords = ["Unit"]
+    keyword_types = ["Unit"]
+
 class Choice(EventCommand):
     nid = 'choice'
     tag = Tags.MISCELLANEOUS
