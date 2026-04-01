@@ -560,15 +560,24 @@ def outspeed(unit, target, item, def_item, mode, attack_info) -> int:
         return 0
     
     speed = compute_true_speed(unit, target, item, def_item, mode, attack_info)
+    target_speed = compute_true_speed(target, unit, def_item, item, mode, attack_info)
     
-    has_pursuit = False
+    pursuit = False
     #Check if the unit has pursuit in their skills
     for skill in unit.skills:
         if skill.nid == "Pursuit":
-            has_pursuit = True
+            pursuit = True
             break
     
-    if has_pursuit:
+    #If the target has pursuit in their skills and has enough negative speed, they should get doubled
+    for skill in target.skills:
+        if skill.nid == "Pursuit" and target_speed <= -equations.parser.speed_to_double(target):
+            #print("speed is",target_speed)
+            #print("equation is",-equations.parser.speed_to_double(target))
+            pursuit = True
+            break
+    
+    if pursuit:
         #The unit has pursuit, so return if doubling should occur
         return 1 if speed >= equations.parser.speed_to_double(unit) else 0
     #The unit does not have pursuit, so return that doubling shouldn't occur (0)
