@@ -1503,18 +1503,33 @@ class TradeItem(Action):
         recalc_unit(self.unit2)
 
 class RepairItem(Action):
-    def __init__(self, item):
+    def __init__(self, unit, item):
+        self.unit = unit
         self.item = item
         self.old_uses = self.item.data.get('uses')
         self.old_c_uses = self.item.data.get('c_uses')
 
     def do(self):
-        if self.old_uses is not None and self.item.uses:
-            self.item.data['uses'] = self.item.data['starting_uses']
-        if self.old_c_uses is not None and self.item.c_uses:
-            self.item.data['c_uses'] = self.item.data['starting_c_uses']
+        #If the item is a valid broken item, return it to its original self. Otherwise repair its durability
+        if self.item.broken_price > 0:
+            #Remove the broken item
+            self.unit.remove_item(self.item)
+            #Create a new item based on the broken item's saved information
+            new_item = item_funcs.create_item(self.unit, self.item.broken_nid)
+            new_item.name = self.item.broken_name
+            new_item.kills = self.item.kills
+            #Give the current unit that new item
+            game.register_item(new_item)
+            self.unit.add_item(new_item)
+        else:
+            #Default behavior
+            if self.old_uses is not None and self.item.uses:
+                self.item.data['uses'] = self.item.data['starting_uses']
+            if self.old_c_uses is not None and self.item.c_uses:
+                self.item.data['c_uses'] = self.item.data['starting_c_uses']
 
     def reverse(self):
+        #This doesn't support reverting fixed items back into broken items, so uh... try not to call this
         if self.old_uses is not None and self.item.uses:
             self.item.data['uses'] = self.old_uses
         if self.old_c_uses is not None and self.item.c_uses:

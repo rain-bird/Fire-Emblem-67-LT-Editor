@@ -45,9 +45,12 @@ class ItemObject():
         self.command_item = None
         self.command_parent_item = None
         
+        # For our new additions
         self.depositor = None #Used for creating the effect of unit-specific convoys
-        self.broken_nid = None #Used for broken items
-        self.broken_name = None #Used for broken items
+        self.kills = 0 #Used for the kill-based crit system
+        self.broken_nid = None #Used for turning broken items into fixed items
+        self.broken_name = None #Used for turning broken items into fixed items
+        self.broken_price = 0 #Used for determining the price of fixing broken items
 
     @property
     def tags(self) -> set:

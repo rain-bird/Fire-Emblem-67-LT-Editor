@@ -508,19 +508,27 @@ class RepairValueItemOption(ValueItemOption):
         
         #If the item has uses and they are less than full, make its name and uses white
         if self.item.data.get('uses') is not None and self.item.data['starting_uses'] > self.item.data['uses']:
-            main_color = 'white'
-            uses_color = 'white'
+            main_color, uses_color = 'white','white'
+        #If the item is a valid broken item, make its name and uses white
+        if self.item.broken_price > 0:
+            main_color, uses_color = 'white','white'
         render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
-
+        
         uses_string = '--'
         if self.item.data.get('uses') is not None:
             uses_string = str(self.item.data['uses'])
         render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), HAlignment.RIGHT)
-
+        
         value_color = 'grey'
         value_string = '--'
         owner = game.get_unit(self.item.owner_nid)
-        value = item_funcs.repair_price(owner, self.item)
+        value = 0
+        #If the item is a valid broken item, set its displayed price to its broken_price. Otherwise it's default.
+        if self.item.broken_price > 0:
+            value = self.item.broken_price
+        else:
+            value = item_funcs.repair_price(owner, self.item)
+        
         if value:
             value_string = str(value)
             

@@ -1463,13 +1463,10 @@ class ItemChildState(MapState):
                 #Convoy mentions
                 if item_system.storeable(self.cur_unit, item) and game.game_vars.get('_convoy') and DB.constants.value("long_range_storage"):
                     options.append('Storage')
-                    print("mention 1")
                 elif item_system.storeable(self.cur_unit, item) and game.game_vars.get('_convoy') and SupplyAbility.targets(self.cur_unit):
                     options.append('Storage')
-                    print("mention 2")
                 elif item_system.discardable(self.cur_unit, item):
                     options.append('Discard')
-                    print("mention 3")
             if not options:
                 options.append('Nothing')
         else:
@@ -3202,7 +3199,13 @@ class RepairShopState(ShopState):
         if event == 'SELECT':
             item = self.menu.get_current()
             if item:
-                value = item_funcs.repair_price(self.unit, item)
+                #If this item is a broken item, its repair price is its broken_price. Otherwise it's default.
+                value = 0
+                if item.broken_price > 0:
+                    value = item.broken_price
+                else:
+                    value = item_funcs.repair_price(self.unit, item)
+                
                 if value:
                     if self.unit.personal_funds - value >= 0:
                         action.do(action.HasTraded(self.unit))
@@ -3210,7 +3213,17 @@ class RepairShopState(ShopState):
                         action.do(action.GainMoney(self.unit, -value))
                         #action.do(action.UpdateRecords('money', (game.current_party, -value)))
                         self.money_counter_disp.start(-value)
-                        action.do(action.RepairItem(item))
+                        action.do(action.RepairItem(self.unit, item))
+                        #Tells the game to update the screen in a very manual way
+                        items = self.unit.items[:]
+                        topleft = (44, WINHEIGHT - 16 * 5 - 8 - 4)
+                        self.menu = menus.RepairShop(self.unit, items, topleft, disp_value='repair')
+                        self.menu.set_limit(5)
+                        self.menu.set_hard_limit(True)
+                        self.menu.gem = True
+                        self.menu.shimmer = 0
+                        self.menu.set_takes_input(True)
+                        #Default stuff
                         self.current_msg = self.get_dialog(self.buy_message)
                         self.update_options()
                     else:

@@ -134,6 +134,9 @@ def can_repair(unit: UnitObject, item: ItemObject) -> bool:
     if item.uses and item.data['uses'] < item.data['starting_uses'] and \
             not item_system.unrepairable(unit, item):
         return True
+    #Returns true if the item is a valid broken item.
+    if item.broken_price > 0:
+        return True
     return False
 
 def has_repair(unit: UnitObject) -> bool:
