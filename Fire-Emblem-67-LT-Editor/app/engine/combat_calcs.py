@@ -558,10 +558,21 @@ def outspeed(unit, target, item, def_item, mode, attack_info) -> int:
         return 0
     if mode == 'defense' and not (DB.constants.value('def_double') or skill_system.def_double(unit)):
         return 0
-
+    
     speed = compute_true_speed(unit, target, item, def_item, mode, attack_info)
-
-    return 1 if speed >= equations.parser.speed_to_double(unit) else 0
+    
+    has_pursuit = False
+    #Check if the unit has pursuit in their skills
+    for skill in unit.skills:
+        if skill.nid == "Pursuit":
+            has_pursuit = True
+            break
+    
+    if has_pursuit:
+        #The unit has pursuit, so return if doubling should occur
+        return 1 if speed >= equations.parser.speed_to_double(unit) else 0
+    #The unit does not have pursuit, so return that doubling shouldn't occur (0)
+    return 0
 
 def compute_attack_phases(unit, target, item, def_item, mode, attack_info) -> int:
     num_attacks = 1
