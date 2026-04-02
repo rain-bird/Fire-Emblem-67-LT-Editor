@@ -572,8 +572,6 @@ def outspeed(unit, target, item, def_item, mode, attack_info) -> int:
     #If the target has pursuit in their skills and has enough negative speed, they should get doubled
     for skill in target.skills:
         if skill.nid == "Pursuit" and target_speed <= -equations.parser.speed_to_double(target):
-            #print("speed is",target_speed)
-            #print("equation is",-equations.parser.speed_to_double(target))
             pursuit = True
             break
     
