@@ -567,13 +567,16 @@ def outspeed(unit, target, item, def_item, mode, attack_info) -> int:
     for skill in unit.skills:
         if skill.nid == "Pursuit":
             pursuit = True
-            break
+        #If any unit in combat has Wary Fighter, doubling can NEVER occur
+        if skill.nid == "Wary_Fighter":
+            return 0
     
     #If the target has pursuit in their skills and has enough negative speed, they should get doubled
     for skill in target.skills:
         if skill.nid == "Pursuit" and target_speed <= -equations.parser.speed_to_double(target):
             pursuit = True
-            break
+        if skill.nid == "Wary_Fighter":
+            return 0
     
     if pursuit:
         #The unit has pursuit, so return if doubling should occur
