@@ -1222,10 +1222,16 @@ def interact_unit(self: Event, unit, position, combat_script: Optional[List[str]
         else:
             self.logger.error("interact_unit: Unit does not have an item in their inventory!")
             return
-
+    
+    arena_attr = 0
+    if 'arena_1' in flags:
+        arena_attr = 1
+    elif 'arena_2' in flags:
+        arena_attr = 2
+    
     interaction.start_combat(
         actor, target, item, skip='immediate' in flags, event_combat=True, script=script, total_rounds=total_rounds,
-        arena='arena' in flags, force_animation='force_animation' in flags, force_no_animation='force_no_animation' in flags)
+        arena=arena_attr, force_animation='force_animation' in flags, force_no_animation='force_no_animation' in flags)
     self.state = "paused"
 
 def pose_unit(self: Event, unit, pose, direction=None, flags=None):

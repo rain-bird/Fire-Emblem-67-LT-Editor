@@ -38,7 +38,7 @@ class AnimationCombat(BaseCombat, MockCombat):
     alerts: bool = True
 
     def __init__(self, attacker: UnitObject, main_item: ItemObject, defender: UnitObject, def_item: ItemObject,
-                 script: list, total_rounds: int = 1, arena_combat: bool = False):
+                 script: list, total_rounds: int = 1, arena_combat: int = 0):
         self.attacker = attacker
         self.defender = defender
         self.main_item = main_item
@@ -529,7 +529,7 @@ class AnimationCombat(BaseCombat, MockCombat):
 
         elif self.state == 'fade_out_wait':
             if self._skip or current_time > 820:
-                if self.arena_combat:
+                if self.arena_combat > 0:
                     self.state = 'arena_out'
                 else:
                     self.left_battle_anim.finish()
@@ -689,8 +689,13 @@ class AnimationCombat(BaseCombat, MockCombat):
         right_platform_full_loc = RESOURCES.platforms.get(right_platform_type + suffix, RESOURCES.platforms.get('Arena' + suffix))
         self.right_platform = engine.flip_horiz(engine.image_load(right_platform_full_loc))
 
-        if self.arena_combat:
+        if self.arena_combat == 1:
             panorama = RESOURCES.panoramas.get('combat_arena')
+            if not panorama:
+                panorama = RESOURCES.panoramas[0]
+            self.battle_background = background.PanoramaBackground(panorama)
+        elif self.arena_combat == 2:
+            panorama = RESOURCES.panoramas.get('combat_castle1')
             if not panorama:
                 panorama = RESOURCES.panoramas[0]
             self.battle_background = background.PanoramaBackground(panorama)

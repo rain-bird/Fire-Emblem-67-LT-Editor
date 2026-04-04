@@ -17,7 +17,7 @@ from app.engine.combat.utils import resolve_weapon
 class SimpleCombat():
     ai_combat: bool = False
     event_combat: bool = False
-    arena_combat: bool = False
+    arena_combat: int = 0 #bool = False
     alerts: bool = False  # Whether to show end of combat alerts
     """
     Does the simple mechanical effects of combat without any effects
@@ -701,7 +701,7 @@ class SimpleCombat():
                 game.events.trigger(triggers.CombatDeath(unit, killer, unit.position))
 
     def handle_death(self, units):
-        if not self.arena_combat:
+        if self.arena_combat == 0:
             for unit in units:
                 if unit.is_dying:
                     game.state.change('dying')
@@ -715,7 +715,7 @@ class SimpleCombat():
                 game.events.trigger(triggers.UnitDeath(unit, killer, unit.position))
                 skill_system.on_death(unit)
 
-        if self.arena_combat:
+        if self.arena_combat > 0:
             for unit in units:
                 if unit.is_dying:
                     game.death.force_death(unit)

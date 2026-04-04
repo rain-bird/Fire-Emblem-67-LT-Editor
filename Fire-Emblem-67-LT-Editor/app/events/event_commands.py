@@ -1423,7 +1423,8 @@ Initiates a battle. The *Unit* will target the *Position* to start the combat.
 A *CombatScript* can optionally be provided to ensure a pre-set outcome to the battle.
 *Ability* can be used to specify which item or ability the attacker will use.
 *PositiveInteger* can be set to determine the number of rounds the combat will go on for. Defaults to 1. Useful for arena combats (set to 20+).
-The *arena* flag should be set when you want to allow the player to be able to press B and leave the combat between rounds. It also sets the combat background to the arena.
+The *arena_1* flag should be set when you want to allow the player to be able to press B and leave the combat between rounds. It also sets the combat background to the arena.
+The *arena_2* flag should be set when you want to force the combat background to be castle_1.
 The *force_animation* and *force_no_animation* flags tell the engine whether to ignore the player's settings when choosing to display a combat animation. Useful for arena combats.
 The *immediate* flag will cause the combat to happen as quickly as possible, often instantaneously. Use when you want the effects of combat to happen without the player waiting to see it.
         """
@@ -1431,7 +1432,7 @@ The *immediate* flag will cause the combat to happen as quickly as possible, oft
     keywords = ["Unit", "Position"]
     optional_keywords = ["CombatScript", "Ability", "Rounds"]
     keyword_types = ["Unit", "Position", "CombatScript", "Ability", "PositiveInteger"]
-    _flags = ["arena", "force_animation", "force_no_animation", "immediate"]
+    _flags = ["arena_1", "arena_2", "force_animation", "force_no_animation", "immediate"]
 
 class PoseUnit(EventCommand):
     nid = 'pose_unit'
