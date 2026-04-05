@@ -1,6 +1,6 @@
 # Fire-Emblem-67-LT-Editor
 The modified version of the Lex Talionis Fire Emblem fangame maker for usage with the Fire Emblem 67 project by Donlot.<br/>
-To my knowledge no Windows executable is included. You're going to have to install Python to run this, and I did all of my coding in python 3.12.
+To my knowledge no Windows executable is included. You're going to have to install Python, pygame, and all the other requirements of Lex Talionis in order to run this.
 
 ## CHANGES FROM BASE LEX TALIONIS
 ### === Unit Funds ===
