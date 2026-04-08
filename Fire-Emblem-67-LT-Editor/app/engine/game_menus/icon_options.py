@@ -21,7 +21,7 @@ class ItemOptionUtils():
     def draw_icon(surf, x, y, item: ItemObject):
         icon = icons.get_icon(item)
         if icon:
-            surf.blit(icon, (x + 2, y))
+            surf.blit(icon, (x + 3, y + 5))
 
     @staticmethod
     def draw_without_uses(surf, x, y, item: ItemObject, font: NID, color: NID, width: int,

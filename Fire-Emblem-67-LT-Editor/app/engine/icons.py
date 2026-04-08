@@ -11,6 +11,7 @@ from app.data.database.database import DB
 
 from app.engine.sprites import SPRITES
 from app.engine.fonts import FONT
+from app.engine.fonts import get_text_color_options 
 from app.engine import engine, skill_system, image_mods, unit_funcs
 
 def get_icon_by_name(name) -> engine.Surface:
@@ -117,6 +118,23 @@ def draw_weapon(surf, weapon_type, topleft, gray=False):
     surf.blit(image, topleft)
     return surf
 
+def draw_big_weapon(surf, weapon_type, topleft, gray=False):
+    w_type_obj = DB.weapons.get(weapon_type)
+    if not w_type_obj:
+        return surf
+    
+    image_name = "wexp_" + w_type_obj.nid
+    print(image_name)
+    image = SPRITES.get(image_name)
+    if not image:
+        return surf
+    
+    if gray:
+        image = image_mods.make_gray(image.convert_alpha())
+    
+    surf.blit(image, topleft)
+    return surf
+
 def draw_faction(surf, faction, topleft):
     image = RESOURCES.icons32.get(faction.icon_nid)
     if not image:
@@ -199,7 +217,7 @@ def draw_chibi(surf, nid, topleft=None, bottomright=None):
 
 def draw_stat(surf, stat_nid, unit, topright, compact=False):
     if stat_nid not in DB.stats:
-        FONT['text-yellow'].blit_right('--', surf, topright)
+        FONT['text_big-yellow'].blit_right('--', surf, topright)
         return
     value = unit.stats.get(stat_nid, 0)
     bonus = unit.stat_bonus(stat_nid)
@@ -207,32 +225,32 @@ def draw_stat(surf, stat_nid, unit, topright, compact=False):
     max_stat = unit.get_stat_cap(stat_nid)
     if compact:
         if value >= max_stat:
-            draw_glow(surf, FONT['text-green'], str(value + bonus), topright, HAlignment.RIGHT)
+            draw_glow(surf, FONT['text_big-green'], str(value + bonus), topright, HAlignment.RIGHT)
             return
 
         if bonus > 0:
-            typeface = FONT['text-green']
+            typeface = FONT['text_big-green']
         elif bonus < 0:
-            typeface = FONT['text-red']
+            typeface = FONT['text_big-red']
         else:
-            typeface = FONT['text-blue']
+            typeface = FONT['text_big-blue']
         typeface.blit_right(str(value + bonus), surf, topright)
     else:
         # Recalc these values for full display
         value = value + subtle_bonus
         bonus = bonus - subtle_bonus
         if value >= max_stat:
-            draw_glow(surf, FONT['text-green'], str(value), topright, HAlignment.RIGHT)
+            draw_glow(surf, FONT['text_big-green'], str(value), topright, HAlignment.RIGHT)
         else:
-            FONT['text-blue'].blit_right(str(value), surf, topright)
+            FONT['text_big-blue'].blit_right(str(value), surf, topright)
         if bonus > 0:
-            draw_glow(surf, FONT['small-green'], "+%d" % bonus, topright)
+            draw_glow(surf, FONT['text-green'], "+%d" % bonus, (topright[0],topright[1] + 7))
         elif bonus < 0:
-            draw_glow(surf, FONT['small-red'], str(bonus), topright)
+            draw_glow(surf, FONT['text-red'], str(bonus), (topright[0],topright[1] + 7))
 
 def draw_growth(surf, stat_nid, unit, topright, compact=False):
     if stat_nid not in DB.stats:
-        FONT['text-yellow'].blit_right('--', surf, topright)
+        FONT['text_big-yellow'].blit_right('--', surf, topright)
         return
     value = unit_funcs.base_growth_rate(unit, stat_nid)
     value_and_bonus = unit_funcs.growth_rate(unit, stat_nid)
@@ -240,11 +258,11 @@ def draw_growth(surf, stat_nid, unit, topright, compact=False):
     if compact:
         pass
     else:
-        FONT['text-blue'].blit_right(str(value), surf, topright)
+        FONT['text_big-blue'].blit_right(str(value), surf, topright)
         if bonus > 0:
-            FONT['small-green'].blit("+%d" % bonus, surf, topright)
+            FONT['text-green'].blit("+%d" % bonus, surf, (topright[0],topright[1] + 7))
         elif bonus < 0:
-            FONT['small-red'].blit(str(bonus), surf, topright)
+            FONT['text-red'].blit(str(bonus), surf, (topright[0],topright[1] + 7))
 
 def draw_glow(surf, font_obj, text, topright, align: HAlignment = HAlignment.LEFT, color: str = None):
     interval = 800   # ms
