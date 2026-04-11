@@ -3129,7 +3129,7 @@ def repair_shop(self: Event, unit, flags=None):
 
 def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int = 0, orientation: Orientation = Orientation.VERTICAL,
            alignment: Alignments = Alignments.CENTER, bg: str = 'menu_bg_base', event_nid: str = None, entry_type: str = 'str',
-           dimensions: Optional[Tuple[str, str]] = None, text_align: HAlignment = HAlignment.LEFT, flags=None):
+           dimensions: Optional[Tuple[str, str]] = None, text_align: HAlignment = HAlignment.LEFT, scale: int = 1, flags=None):
     flags = flags or set()
 
     nid = nid or ""
@@ -3179,7 +3179,7 @@ def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int
     self.game.memory['player_choice'] = (nid, header, data, row_width,
                                          orientation, entry_type, should_persist,
                                          alignment, bg, event_nid, size, no_cursor,
-                                         arrows, scroll_bar, text_align, backable, event_context)
+                                         arrows, scroll_bar, text_align, backable, event_context, scale)
     self.game.state.change('player_choice')
     self.state = 'paused'
 

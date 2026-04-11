@@ -155,6 +155,8 @@ class Dialog:
         if position:
             if isinstance(position, Alignments):
                 pos_x, pos_y = calc_align((self.width, self.height), position)
+                pos_x = pos_x//4
+                pos_y = pos_y//4
             else:
                 pos_x = position[0]
                 pos_y = position[1]

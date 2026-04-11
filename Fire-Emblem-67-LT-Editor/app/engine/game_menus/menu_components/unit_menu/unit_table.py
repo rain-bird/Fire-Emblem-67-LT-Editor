@@ -56,49 +56,54 @@ def get_all_character_stats() -> List[StatPrefab]:
 def get_formatted_stat_pages() -> List[Tuple[str, List[Column]]]:
     all_pages = []
     first_page = [
-        Column('30%', 'Class', uif.HAlignment.LEFT, None, lambda unit: DB.classes.get(unit.klass).name, None, font='text'),
-        Column('16%', 'Lv', uif.HAlignment.RIGHT, None, lambda unit: unit.level, None, sort_by=lambda unit: unit.get_internal_level()),
-        Column('16%', 'Exp', uif.HAlignment.RIGHT, None, lambda unit: unit.exp, None),
-        Column('16%', 'HP', uif.HAlignment.RIGHT, None, lambda unit: unit.get_hp(), None),
-        Column('16%', 'Max', uif.HAlignment.LEFT, None, lambda unit: '/' + str(unit.get_max_hp()), None),
+        Column('18%', 'Class', uif.HAlignment.LEFT, None, lambda unit: DB.classes.get(unit.klass).name, None, font='text'),
+        Column('8%', 'Lv', uif.HAlignment.RIGHT, None, lambda unit: unit.level, None, sort_by=lambda unit: unit.get_internal_level()),
+        Column('8%', 'Exp', uif.HAlignment.RIGHT, None, lambda unit: unit.exp, None),
+        Column('7%', 'HP', uif.HAlignment.RIGHT, None, lambda unit: unit.get_hp(), None),
+        Column('7%', '/Max', uif.HAlignment.LEFT, None, lambda unit: '/' + str(unit.get_max_hp()), None),
     ]
-    all_pages.append(('Character', first_page))
-
-    new_character_stat_page = []
+    #Since the screen is wider than usual, we can fit every stat on one screen
     for idx, stat in enumerate(get_all_character_stats()):
-        new_character_stat_page.append(
+        string = stat.name
+        if string == "Move":
+            string = "Mov"
+        if string == "Con": #We don't care for CON
+            continue
+        first_page.append(
             # truncate the name to 5 digits
-            Column('16%', stat.name, uif.HAlignment.RIGHT, None, lambda unit, nid=stat.nid: unit.get_stat(nid), None,
+            Column('7%', stat.name, uif.HAlignment.RIGHT, None, lambda unit, nid=stat.nid: unit.get_stat(nid), None,
                    get_font=(lambda unit, nid=stat.nid: 'text-blue' if unit.get_stat(nid) < unit.get_stat_cap(nid) else 'text-yellow'))
         )
-        if len(new_character_stat_page) == 6 or idx == len(get_all_character_stats()) - 1:
-            all_pages.append(('Vital Statistics', new_character_stat_page[:]))
-            new_character_stat_page = []
+    all_pages.append(('Character', first_page))
 
     equipment_page = [
-        Column('50%', 'Equip', uif.HAlignment.LEFT, engine.create_surface(ICON_SIZE, True),
+        Column('35%', 'Equip', uif.HAlignment.LEFT, engine.create_surface(ICON_SIZE, True),
                 lambda unit: (unit.get_weapon().name if unit.get_weapon() else None),
                 lambda unit: (icons.get_icon(unit.get_weapon()) if unit.get_weapon() else None),
                 lambda unit: (item_system.weapon_type(unit, unit.get_weapon()) if unit.get_weapon() else "",
                               unit.get_weapon().name if unit.get_weapon() else "",),
                 font='text'
                ),
-        Column('16%', 'Atk', uif.HAlignment.RIGHT, None,
+        Column('10%', 'Atk', uif.HAlignment.RIGHT, None,
                lambda unit: str(unit.get_damage_with_current_weapon()) if unit.get_damage_with_current_weapon() else '--',
                None),
-        Column('16%', 'Hit', uif.HAlignment.RIGHT, None,
+        Column('10%', 'Hit', uif.HAlignment.RIGHT, None,
                lambda unit: str(unit.get_accuracy_with_current_weapon()) if unit.get_accuracy_with_current_weapon() else '--',
                None),
-        Column('16%', 'Avoid', uif.HAlignment.RIGHT, None,
-               lambda unit: str(unit.get_avoid_with_current_weapon()) if unit.get_avoid_with_current_weapon() else '--',
+        Column('10%', 'Crit', uif.HAlignment.RIGHT, None,
+               lambda unit: str(unit.get_crit_with_current_weapon()) if unit.get_crit_with_current_weapon() else '--',
+               None),
+        Column('10%', 'Uses', uif.HAlignment.RIGHT, None,
+               lambda unit: str(unit.get_remaining_with_current_weapon()) if unit.get_remaining_with_current_weapon() else '--',
                None),
     ]
     all_pages.append(('Equipment', equipment_page))
 
     new_weapon_rank_page = []
     for idx, wtype in enumerate(get_all_weapon_types()):
+        
         new_weapon_rank_page.append(
-            Column('12%', "", uif.HAlignment.LEFT, icons.get_icon(wtype),
+            Column('6%', " ", uif.HAlignment.CENTER, icons.get_icon(wtype),
                    lambda unit, wtype=wtype: (DB.weapon_ranks.get_rank_from_wexp(unit.wexp[wtype.nid]).rank
                                               if (DB.weapon_ranks.get_rank_from_wexp(unit.wexp[wtype.nid]) and wtype.nid in unit_funcs.usable_wtypes(unit))
                                               else '-'),
@@ -109,7 +114,7 @@ def get_formatted_stat_pages() -> List[Tuple[str, List[Column]]]:
                                                   else
                                 'text-yellow'))
         )
-        if len(new_weapon_rank_page) == 8 or idx == len(get_all_weapon_types()) - 1:
+        if len(new_weapon_rank_page) == 16 or idx == len(get_all_weapon_types()) - 1:
             all_pages.append(('Weapon Level', new_weapon_rank_page[:]))
             new_weapon_rank_page = []
 
@@ -121,9 +126,9 @@ class UnitStatisticsTable(uif.UIComponent):
         self.parent = parent
         self.STAT_PAGES = get_formatted_stat_pages()
         self.MAX_PAGES = len(self.STAT_PAGES)
-        self.size = ('65%', '100%')
+        self.size = ('75%', '100%')
         self.overflow = (0, 0, 0, 0)
-        self.max_width = '65%'
+        self.max_width = '75%'
         self.max_height = '100%'
         self.padding = (0, 0, 0, 0)
         self.data = data
@@ -270,7 +275,7 @@ class UnitInformationTable(uif.UIComponent):
         super().__init__(name=name, parent=parent)
         self.page_num = 1
         self.data = data
-        self.size = (WINWIDTH - 8, WINHEIGHT * 0.75) # specifically, 232 x 120
+        self.size = (WINWIDTH - 8, WINHEIGHT * 0.85) # specifically, 232 x 120
         self.overflow = (16, 16, 16, 0)
         self.margin = (0, 0, 0, 3)
         self.padding = (0, 0, 3, 0)
@@ -320,7 +325,7 @@ class UnitInformationTable(uif.UIComponent):
             header_row=self.header_row,
             data_rows=self.name_rows,
             height=self.height - self.MENU_BOTTOM_BORDER_THICKNESS,
-            width='30%')
+            width='16%')
         self.left_unit_name_list.padding = (3, 0, 0, 0)
         overflow_list = list(self.left_unit_name_list.overflow)
         overflow_list[3] = 0

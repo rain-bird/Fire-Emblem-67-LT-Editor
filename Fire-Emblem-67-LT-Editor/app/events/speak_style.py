@@ -59,20 +59,20 @@ class SpeakStyleLibrary(Dict[NID, SpeakStyle]):
              '__default_text': SpeakStyle('__default_text', speed=0.5, font_type='text', background='menu_bg_base', num_lines=0, name_tag_bg='menu_bg_base', transparency=0.05, boop_sound='Talk_Boop'),
              '__default_help': SpeakStyle('__default_help', speed=0.5, font_type='convo', background='None', draw_cursor=False, num_lines=8, name_tag_bg='name_tag', transparency=0.05),
              'noir': SpeakStyle('noir', background='menu_bg_dark', font_color='white', message_tail='None'),
-             'hint': SpeakStyle('hint', background='menu_bg_parchment', position=Alignments.CENTER, width=WINWIDTH//2 + 8, num_lines=4, message_tail='None'),
+             'hint': SpeakStyle('hint', background='menu_bg_parchment', position=Alignments.CENTER, width=WINWIDTH//4 + 8, num_lines=4, message_tail='None'),
              'cinematic': SpeakStyle('cinematic', background='None', position=Alignments.CENTER, font_color='grey', num_lines=5,
                                      font_type='chapter', draw_cursor=False, message_tail='None'),
-             'narration': SpeakStyle('narration', background='menu_bg_base', position=(4, 110), width=WINWIDTH - 8,
+             'narration': SpeakStyle('narration', background='menu_bg_base', position=(4, 110), width=WINWIDTH//2 - 8,
                                      font_color='white', message_tail='None'),
-             'narration_top': SpeakStyle('narration_top', background='menu_bg_base', position=(4, 2), width=WINWIDTH - 8,
+             'narration_top': SpeakStyle('narration_top', background='menu_bg_base', position=(4, 2), width=WINWIDTH//2 - 8,
                                          font_color='white', message_tail='None'),
              'clear': SpeakStyle('clear', background='None', font_color='white', draw_cursor=False, message_tail='None'),
              'thought_bubble': SpeakStyle('thought_bubble', message_tail='message_bg_thought_tail', flags={'no_talk'}),
              'boss_convo_left': SpeakStyle('boss_convo_left', speed=1, font_type='convo', background='message_bg_base', num_lines=2, draw_cursor=True,
-                                           message_tail='message_bg_tail', transparency=0.0, position=(72, 112), width=WINWIDTH - 80),
+                                           message_tail='message_bg_tail', transparency=0.0, position=(72, 112), width=WINWIDTH//2 - 80),
              'boss_convo_right': SpeakStyle('boss_convo_right', speed=1, font_type='convo', background='message_bg_base', num_lines=2, draw_cursor=True,
-                                            message_tail='message_bg_tail', transparency=0.0, position=(8, 112), width=WINWIDTH - 80),
-             'overworld_narration': SpeakStyle("overworld_narration", background='None', position=(4, 110), width=WINWIDTH - 8, font_color="white", message_tail=None, num_lines=2, speed=2)
+                                            message_tail='message_bg_tail', transparency=0.0, position=(8, 112), width=WINWIDTH//2 - 80),
+             'overworld_narration': SpeakStyle("overworld_narration", background='None', position=(4, 110), width=WINWIDTH//2 - 8, font_color="white", message_tail=None, num_lines=2, speed=2)
              }
         )
 

@@ -122,16 +122,15 @@ def draw_big_weapon(surf, weapon_type, topleft, gray=False):
     w_type_obj = DB.weapons.get(weapon_type)
     if not w_type_obj:
         return surf
-    
+    #Get the wexp sprite to draw
     image_name = "wexp_" + w_type_obj.nid
-    print(image_name)
     image = SPRITES.get(image_name)
     if not image:
         return surf
     
     if gray:
         image = image_mods.make_gray(image.convert_alpha())
-    
+    #Draw it
     surf.blit(image, topleft)
     return surf
 

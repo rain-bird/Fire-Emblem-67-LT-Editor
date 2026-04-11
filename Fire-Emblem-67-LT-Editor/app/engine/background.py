@@ -44,7 +44,7 @@ class SpriteBackground():
         self.state = 'out'
 
 class PanoramaBackground():
-    def __init__(self, panorama, speed=125, loop=True, autoscale=True):
+    def __init__(self, panorama, speed=125, loop=True, autoscale=False):
         self.counter = 0
         self.panorama = panorama
         if not self.panorama.images:
@@ -131,8 +131,8 @@ class PanoramaBackground():
 
     def _draw(self, surf, image):
         # First draw without screen shake
-        x = WINWIDTH//2 - image.get_width()//2
-        y = WINHEIGHT//2 - image.get_height()//2
+        x = WINWIDTH//4 - image.get_width()//2
+        y = WINHEIGHT//4 - image.get_height()//2
         surf.blit(image, (x, y))
         # Then draw with screen shake so we have it as the background and not the jarring map
         s_x = x + self.shake_offset[self.shake_idx][0]

@@ -91,11 +91,13 @@ class ChoiceMenuOptionFactory():
 
 class LayoutManager():
     @staticmethod
-    def align_to_screen_position(alignment: Alignments, margin: int, size: Tuple[int, int], window_size: Tuple[int, int] = (WINWIDTH, WINHEIGHT)) -> Tuple[int, int]:
+    def align_to_screen_position(alignment: Alignments, margin: int, size: Tuple[int, int], window_size: Tuple[int, int] = (WINWIDTH, WINHEIGHT), scale: int = 1) -> Tuple[int, int]:
         halign, valign = convert_align(alignment)
         x, y = 0, 0
         sw, sh = size
         screen_w, screen_h = window_size
+        screen_w = screen_w//scale
+        screen_h = screen_h//scale
         if halign is HAlignment.LEFT:
             x = margin
         elif halign is HAlignment.RIGHT:
@@ -117,7 +119,7 @@ class GridChoiceMenu():
     def __init__(self, data: List, display_values: Optional[List] = None, title: Optional[str] = None, data_type: str = "text",
                  size: Optional[Tuple[int, int]] = None, row_width: int = 0, alignment: Alignments | Tuple[int, int] = Alignments.CENTER,
                  orientation: Orientation = Orientation.VERTICAL,
-                 bg: NID = 'menu_bg_base', text_align: HAlignment = HAlignment.LEFT) -> None:
+                 bg: NID = 'menu_bg_base', text_align: HAlignment = HAlignment.LEFT, scale: int = 1) -> None:
         self._should_autosize = not bool(size)
         self._grid_size: Tuple[int, int] = size or self._autosize_grid(data)
         self._data_type: str = data_type
@@ -127,6 +129,7 @@ class GridChoiceMenu():
         self._orientation: Orientation = orientation
         self._alignment: Alignments | Tuple[int, int] = alignment
         self._text_align = text_align
+        self._scale = scale
 
         self._option_data = self._build_data(
             data, display_values, self._data_type, self._row_width)
@@ -365,7 +368,7 @@ class GridChoiceMenu():
 
     def _get_screen_position(self) -> Tuple[int, int]:
         if isinstance(self._alignment, Alignments):
-            return LayoutManager.align_to_screen_position(self._alignment, 10, self._get_pixel_size())
+            return LayoutManager.align_to_screen_position(self._alignment, 10, self._get_pixel_size(), scale=self._scale)
         return self._alignment
 
     def get_selected_idx(self) -> int:
@@ -389,8 +392,8 @@ class GridChoiceMenu():
         scroll_x, scroll_y = self._scroll
         offset_coord = sel_x - scroll_x, sel_y - scroll_y
         px, py = self._get_pixel_coord_of_coord(offset_coord)
-        px = clamp(px + menu_left, 0, WINWIDTH)
-        py = clamp(py + menu_top, 0, WINHEIGHT)
+        px = clamp(px + menu_left, 0, WINWIDTH//self.scale)
+        py = clamp(py + menu_top, 0, WINHEIGHT//self.scale)
         return (px, py)
         
     def _get_rects(self) -> List[Tuple[int, Tuple[int, int, int, int]]]:

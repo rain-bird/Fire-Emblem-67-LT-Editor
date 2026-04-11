@@ -4,7 +4,7 @@ import logging
 from typing import List, Tuple
 
 from app.data.database.database import DB
-from app.engine import action, text_funcs
+from app.engine import engine, action, text_funcs
 from app.engine.game_menus.menu_components.generic_menu.cursor_hand import CursorDrawMode
 from app.engine.game_menus.menu_components.generic_menu.grid_choice import GridChoiceMenu
 from app.engine.game_state import game
@@ -24,7 +24,7 @@ class PlayerChoiceState(MapState):
     def start(self):
         self.nid, self.header, options_list, self.row_width, self.orientation, \
             self.data_type, self.should_persist, self.alignment, self.bg, self.event_on_choose, \
-            self.size, self.no_cursor, self.arrows, self.scroll_bar, self.text_align, self.backable, self.event_context = \
+            self.size, self.no_cursor, self.arrows, self.scroll_bar, self.text_align, self.backable, self.event_context, self.scale = \
             game.memory['player_choice']
         self.is_callable = False
         self.data = options_list
@@ -45,7 +45,7 @@ class PlayerChoiceState(MapState):
         values, display_values = self.process_data(self._resolved_data)
         self.menu = GridChoiceMenu(values, display_values, self.header, self.data_type, self.size,
                                    self.row_width, self.alignment, self.orientation,
-                                   self.bg, self.text_align)
+                                   self.bg, self.text_align, self.scale)
 
         if self.scroll_bar is not None:
             self.menu.set_scrollbar(self.scroll_bar)
@@ -188,6 +188,10 @@ class PlayerChoiceState(MapState):
             return 'repeat'
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//self.scale, WINHEIGHT//self.scale), transparent=True)
+        
         if not self.started:
             return
         draw_mode = CursorDrawMode.NO_DRAW
@@ -195,7 +199,7 @@ class PlayerChoiceState(MapState):
             draw_mode = CursorDrawMode.DRAW if game.state.current_state(
             ) == self else CursorDrawMode.DRAW_STATIC
         self.menu.set_cursor_mode(draw_mode)
-        self.menu.draw(surf)
+        self.menu.draw(new_surf)
 
         if self.info_flag:
             idx = self.menu.get_selected_idx()
@@ -204,10 +208,13 @@ class PlayerChoiceState(MapState):
                 pass
             else:
                 topleft = self.menu.get_topleft_of_idx(idx)
-                if topleft[0] < WINWIDTH // 2:
-                    help_box.draw(surf, (topleft[0] - 4, topleft[1] + 16))
+                if topleft[0] < WINWIDTH // 4:
+                    help_box.draw(new_surf, (topleft[0] - 4, topleft[1] + 16))
                 else:
                     width, _ = self.menu._get_pixel_size()
-                    help_box.draw(surf, (topleft[0] + width, topleft[1] + 16), right=True)
+                    help_box.draw(new_surf, (topleft[0] + width, topleft[1] + 16), right=True)
 
+        #Makes the combat scene fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf

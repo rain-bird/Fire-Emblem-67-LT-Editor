@@ -589,10 +589,22 @@ class UnitObject(Prefab):
         else:
             return 0
 
+    def get_crit_with_current_weapon(self) -> int:
+        """Returns the unit's crit accuracy while wielding their currently equipped weapon"""
+        return combat_calcs.crit_accuracy(self, self.get_weapon())
+
     def get_avoid_with_current_weapon(self) -> int:
         """Returns the unit's base avoid while wielding their currently equipped weapon"""
         return combat_calcs.avoid(self, self.get_weapon())
-
+    
+    def get_remaining_with_current_weapon(self) -> int:
+        """Returns the remaining uses of the unit's currently equipped weapon"""
+        if self.get_weapon():
+            #Returns weapon uses if the unit has a weapon
+            return self.get_weapon().data.get('uses')
+        else:
+            return 0
+    
     @property
     def sprite(self) -> UnitSprite:
         if not self._sprite:

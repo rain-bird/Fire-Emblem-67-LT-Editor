@@ -85,7 +85,7 @@ class SettingsMenuState(State):
         if mouse_position:
             mouse_x, mouse_y = mouse_position
             top_left_rect = (4, 4, self.header_width, 24)
-            top_right_rect = (WINWIDTH//2 + 4, 4, self.header_width, 24)
+            top_right_rect = (WINWIDTH//4 + 4, 4, self.header_width, 24)
             # Test left rect
             x, y, width, height = top_left_rect
             if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
@@ -213,24 +213,24 @@ class SettingsMenuState(State):
 
     def draw_top_menu(self, surf):
         bg = base_surf.create_base_surf(self.header_width, 24, 'menu_bg_clear')
-        offset = (WINWIDTH // 2 - self.header_width) // 2
+        offset = (WINWIDTH//4 - self.header_width) // 2
         surf.blit(bg, (offset, 4))
-        surf.blit(bg, (WINWIDTH//2 + offset, 4))
+        surf.blit(bg, (WINWIDTH//4 + offset, 4))
         if self.current_menu is self.config_menu:
             FONT['text-yellow'].blit_center('Config', surf, (offset + self.header_width//2, 8))
-            FONT['text-grey'].blit_center('Controls', surf, (WINWIDTH//2 + offset + self.header_width//2, 8))
+            FONT['text-grey'].blit_center('Controls', surf, (WINWIDTH//4 + offset + self.header_width//2, 8))
             if self.state in ('top_menu_left', 'top_menu_right'):
                 self.top_cursor.draw(surf, self.header_width//2 - 16, 8)
         else:
             FONT['text-grey'].blit_center('Config', surf, (offset + self.header_width/2, 8))
-            FONT['text-yellow'].blit_center('Controls', surf, (WINWIDTH//2 + offset + self.header_width//2, 8))
+            FONT['text-yellow'].blit_center('Controls', surf, (WINWIDTH//4 + offset + self.header_width//2, 8))
             if self.state in ('top_menu_left', 'top_menu_right'):
-                self.top_cursor.draw(surf, WINWIDTH//2 + 2 + self.header_width//2 - 16, 8)
+                self.top_cursor.draw(surf, WINWIDTH//4 + 2 + self.header_width//2 - 16, 8)
 
     def draw_info_banner(self, surf):
         height = 16
-        bg = base_surf.create_base_surf(WINWIDTH + 16, height, 'menu_bg_clear')
-        surf.blit(bg, (-8, WINHEIGHT - height))
+        bg = base_surf.create_base_surf(WINWIDTH//2 + 16, height, 'menu_bg_clear')
+        surf.blit(bg, (-8, WINHEIGHT//2 - height))
         if self.state == 'top_menu_left':
             text = 'config_desc'
         elif self.state == 'top_menu_left':
@@ -243,23 +243,29 @@ class SettingsMenuState(State):
         else:
             text = 'keymap_desc'
         text = text_funcs.translate(text)
-        FONT['text'].blit_center(text, surf, (WINWIDTH//2, WINHEIGHT - height))
+        FONT['text'].blit_center(text, surf, (WINWIDTH//4, WINHEIGHT//2 - height))
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         else:
             # settings menu shouldn't be transparent
-            surf.blit(SPRITES.get('bg_black'), (0, 0))
-
-        self.draw_top_menu(surf)
+            new_surf.blit(SPRITES.get('bg_black'), (0, 0))
+        
+        self.draw_top_menu(new_surf)
         if self.state == 'get_input':
-            self.current_menu.draw(surf, True)
+            self.current_menu.draw(new_surf, True)
         else:
-            self.current_menu.draw(surf)
-        self.draw_info_banner(surf)
-
-        return surf
+            self.current_menu.draw(new_surf)
+        self.draw_info_banner(new_surf)
+        
+        #Now for the scaling: just stretch our surface to fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        return new_surf
 
     def finish(self):
         # Just to make sure!

@@ -2162,7 +2162,7 @@ class TargetingState(MapState):
         if game.cursor.position[0] > TILEX//2 + game.camera.get_x() - 1:
             topleft = (0, 0)
         else:
-            topleft = (WINWIDTH - 4 - window.get_width(), 0)
+            topleft = (WINWIDTH//2 - 4 - window.get_width(), 0)
         surf.blit(window, topleft)
 
         surf.blit(rescuer_sprite, (topleft[0] - 12, topleft[1] - 16))
@@ -2184,7 +2184,7 @@ class TargetingState(MapState):
         if game.cursor.position[0] > TILEX//2 + game.camera.get_x() - 1:
             topleft = (0, 0)
         else:
-            topleft = (WINWIDTH - 4 - window.get_width(), 0)
+            topleft = (WINWIDTH//2 - 4 - window.get_width(), 0)
         surf.blit(window, topleft)
 
         surf.blit(traveler_sprite, (topleft[0] - 12, topleft[1] - 16))
@@ -2866,7 +2866,7 @@ class ShopState(State):
 
         items = game.memory['shop_items']
         self.stock = game.memory.get('shop_stock', None)
-        topleft = (44, WINHEIGHT - 16 * 5 - 8 - 4)
+        topleft = (44, WINHEIGHT//2 - 16 * 5 - 8 - 4)
 
         # Sell Menu
         if not self.preview:
@@ -2901,7 +2901,7 @@ class ShopState(State):
         else:
             self.current_msg = self.get_dialog(self.opening_message)
 
-        self.message_bg = base_surf.create_base_surf(WINWIDTH + 8, 48, 'menu_bg_clear')
+        self.message_bg = base_surf.create_base_surf(WINWIDTH//2 + 8, 48, 'menu_bg_clear')
         self.money_counter_disp = gui.PopUpDisplay((223, 32))
 
         self.bg = background.create_background('rune_background')
@@ -2916,7 +2916,7 @@ class ShopState(State):
         text = text_funcs.translate_and_text_evaluate(text, self=self)
         d = dialog.Dialog(text)
         d.position = (60, 8)
-        d.text_width = WINWIDTH - 80
+        d.text_width = WINWIDTH//2 - 80
         d.width = d.text_width + 16
         d.font = FONT['convo-white']
         d.font_color = 'white'
@@ -3157,7 +3157,7 @@ class RepairShopState(ShopState):
         self.again_message = apply_flavor('%s_again')
 
         items = self.unit.items[:]
-        topleft = (44, WINHEIGHT - 16 * 5 - 8 - 4)
+        topleft = (44, WINHEIGHT//2 - 16 * 5 - 8 - 4)
         self.menu = menus.RepairShop(self.unit, items, topleft, disp_value='repair')
         self.menu.set_limit(5)
         self.menu.set_hard_limit(True)
@@ -3167,7 +3167,7 @@ class RepairShopState(ShopState):
 
         self.current_msg = self.get_dialog(self.opening_message)
 
-        self.message_bg = base_surf.create_base_surf(WINWIDTH + 8, 48, 'menu_bg_clear')
+        self.message_bg = base_surf.create_base_surf(WINWIDTH//2 + 8, 48, 'menu_bg_clear')
         self.money_counter_disp = gui.PopUpDisplay((223, 32))
 
         self.bg = background.create_background('rune_background')
@@ -3216,7 +3216,7 @@ class RepairShopState(ShopState):
                         action.do(action.RepairItem(self.unit, item))
                         #Tells the game to update the screen in a very manual way
                         items = self.unit.items[:]
-                        topleft = (44, WINHEIGHT - 16 * 5 - 8 - 4)
+                        topleft = (44, WINHEIGHT//2 - 16 * 5 - 8 - 4)
                         self.menu = menus.RepairShop(self.unit, items, topleft, disp_value='repair')
                         self.menu.set_limit(5)
                         self.menu.set_hard_limit(True)

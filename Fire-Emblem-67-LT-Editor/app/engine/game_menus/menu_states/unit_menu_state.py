@@ -1,6 +1,8 @@
 from typing import Tuple
 
-from app.engine import background
+from app.constants import WINWIDTH, WINHEIGHT
+from app.data.resources.resources import RESOURCES
+from app.engine import engine, background
 from app.engine.fluid_scroll import FluidScroll
 from app.engine.game_menus.menu_components.unit_menu.unit_menu import \
     UnitMenuUI
@@ -19,7 +21,9 @@ class UnitMenuState(State):
 
     def start(self):
         self.fluid = FluidScroll()
-        self.bg = background.create_background('settings_background')
+        #The only way I found to do this without encountering weird issues was to create a second background that is already upscaled.
+        self.bg = background.create_background('default_background_TWO', True)
+        
         self.in_level = game.level is not None
         # if in level, all deploy units
         # else, all party units
