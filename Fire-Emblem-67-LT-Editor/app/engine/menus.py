@@ -1432,14 +1432,14 @@ class Convoy():
         for w_type in self.order:
             new_menu = Choice(self.owner, sorted_dict[w_type], self.topleft)
             new_menu.set_convoy(True)
-            new_menu.set_limit(7)
+            new_menu.set_limit(8)
             new_menu.set_hard_limit(True)
             new_menu.gem = False
             new_menu.shimmer = 2
             self.menus[w_type] = new_menu
 
         height = DB.constants.total_items() * 16 + 8
-        self.inventory = Inventory(self.owner, self.owner.items, (12, WINHEIGHT - height - 4))
+        self.inventory = Inventory(self.owner, self.owner.items, (12, WINHEIGHT//2 - height - 4))
         self.inventory.gem = False
         self.inventory.shimmer = 2
 
@@ -1454,14 +1454,20 @@ class Convoy():
                     all_items += items
         #Since we're hijacking the default Convoy screen, we have to tell the screen to hide items that weren't deposited by this unit    
         for convoy_item in game.party.convoy:
+            #print(convoy_item,"convoy:",convoy_item.depositor,"vs",self.unit.nid)
             if self.unit.nid != convoy_item.depositor:
+                #print("not depositor")
                 all_items.remove(convoy_item)
         
+        #print(all_items)
+        
+        #Personal convoys will almost always be small enough that having a page for each item type isn't worthwhile
         sorted_dict = {}
-        for w_type in self.order:
-            if w_type != 'Default':
-                sorted_dict[w_type] = [item for item in all_items if item_system.weapon_type(self.unit, item) == w_type]
-        sorted_dict['Default'] = [item for item in all_items if item_system.weapon_type(self.unit, item) is None]
+        #for w_type in self.order:
+        #    if w_type != 'Default':
+        #        sorted_dict[w_type] = [item for item in all_items if item_system.weapon_type(self.unit, item) == w_type]
+        #sorted_dict['Default'] = [item for item in all_items if item_system.weapon_type(self.unit, item) is None]
+        sorted_dict['Default'] = [item for item in all_items]
         for key, value in sorted_dict.items():
             value.sort(key=lambda item: item_system.special_sort(self.unit, item) or 0)
             value.sort(key=lambda item: item.name)
@@ -1642,53 +1648,72 @@ class Convoy():
             self.inventory.update()
 
     def draw(self, surf):
+        #Unit label
         surf.blit(self.trade_name_surf, (-4, -1))
         FONT['text'].blit(self.owner.name, surf, (24 - FONT['text'].width(self.owner.name)//2, 0))
-
-        # Draw Portrait to left of menu
-        # Owner
+        
+        #Convoy label
+        x_pos = WINWIDTH//2 - 52
+        surf.blit(self.trade_name_surf, (x_pos, -1))
+        FONT['text'].blit('Convoy', surf, (x_pos + 11, 0))# - 24 - FONT['text'].width('Convoy')//2, 0))
+        
+        # Draw Portraits
         if not self.disp_value:
+            # Owner
             owner_surf = engine.create_surface((96, 80), transparent=True)
             icons.draw_portrait(owner_surf, self.owner, (0, 0))
             owner_surf = engine.subsurface(owner_surf, (0, 0, 96, 68))
             owner_surf = engine.flip_horiz(owner_surf)
-            surf.blit(owner_surf, (18, 0))
-
+            surf.blit(owner_surf, (18, 83))
+            
+            # Merlinus
+            merlinus = game.get_unit("Merlinus") #Gets the Merlinus unit so if their portrait changes mid-game, it'll be reflected here
+            convoy_surf = engine.create_surface((96, 80), transparent=True)
+            icons.draw_portrait(convoy_surf, merlinus, (0, 0))
+            convoy_surf = engine.subsurface(convoy_surf, (0, 0, 96, 68))
+            surf.blit(convoy_surf, (self.topleft[0] + 18, 83))
+        
+        #This shouldn't ever be necessary since convoys can only be accessed in specific circumstances and only display personal item
         # Get item owner
-        surf.blit(self.owner_surf, (156, 0))
-        item = self.get_current()
-        unit = None
-        if item:
-            unit = game.get_unit(item.owner_nid)
-
+        #surf.blit(self.owner_surf, (156, 0))
+        #item = self.get_current()
+        #unit = None
+        #if item:
+        #    unit = game.get_unit(item.owner_nid)
+        
+        
+        #Since we only have one page, it's completely unnecessary to display the tabs
         # Draw item icons
         dist = (self.menu_width - 10)/len(self.order)
-        for idx, weapon_nid in enumerate(reversed(self.order)):
-            true_idx = len(self.order) - idx - 1
-            if true_idx == self.selection_index - 1:
-                pass
-            else:
-                topleft = self.topleft[0] + 3 + int(true_idx * dist), self.topleft[1] - 14
-                icons.draw_weapon(surf, weapon_nid, topleft, gray=True)
-        for idx, weapon_nid in enumerate(self.order):
-            if idx == self.selection_index - 1:
-                topleft = (self.topleft[0] + 3 + int(idx * dist), self.topleft[1] - 14)
-                icons.draw_weapon(surf, weapon_nid, topleft)
-                surf.blit(SPRITES.get('weapon_shine'), topleft)
+        #for idx, weapon_nid in enumerate(reversed(self.order)):
+        #    true_idx = len(self.order) - idx - 1
+        #    if true_idx == self.selection_index - 1:
+        #        pass
+        #    else:
+        #        topleft = self.topleft[0] + 3 + int(true_idx * dist), self.topleft[1] - 14
+        #        icons.draw_weapon(surf, weapon_nid, topleft, gray=True)
+        #for idx, weapon_nid in enumerate(self.order):
+        #    if idx == self.selection_index - 1:
+        #        topleft = (self.topleft[0] + 3 + int(idx * dist), self.topleft[1] - 14)
+        #        
+        #        icons.draw_weapon(surf, weapon_nid, topleft)
+        #        surf.blit(SPRITES.get('weapon_shine'), topleft)
 
         self.get_menu().draw(surf)
         if self.inventory:
             self.inventory.draw(surf)
-
+        
+        #More removal of the unnecessary owner display
         # Draw item owner
-        if unit and self.takes_input:
-            unit_str = "Owner: %s" % unit.name
-        else:
-            unit_str = "Owner: ---"
-        FONT['text'].blit(unit_str, surf, (160, 4))
-
-        self.left_arrow.draw(surf)
-        self.right_arrow.draw(surf)
+        #if unit and self.takes_input:
+        #    unit_str = "Owner: %s" % unit.name
+        #else:
+        #    unit_str = "Owner: ---"
+        #FONT['text'].blit(unit_str, surf, (160, 4))
+        
+        #We don't have multiple pages
+        #self.left_arrow.draw(surf)
+        #self.right_arrow.draw(surf)
         return surf
 
     def handle_mouse(self) -> bool:

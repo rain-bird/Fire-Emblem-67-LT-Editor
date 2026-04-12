@@ -66,7 +66,7 @@ def get_formatted_stat_pages() -> List[Tuple[str, List[Column]]]:
     for idx, stat in enumerate(get_all_character_stats()):
         string = stat.name
         if string == "Move":
-            string = "Mov"
+            string = "Mve"
         if string == "Con": #We don't care for CON
             continue
         first_page.append(

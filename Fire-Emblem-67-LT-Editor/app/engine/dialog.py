@@ -94,6 +94,7 @@ class Dialog:
                  transparency=0.05,
                  name_tag_bg="name_tag",
                  boop_sound=None,
+                 scale: int = 1,
                  flags=None):
         self.cursor = SPRITES.get("waiting_cursor")
         flags = flags or set()
@@ -108,6 +109,7 @@ class Dialog:
         self.speed = speed if speed is not None else 1.0
         self.starting_speed = self.speed
         self.boop_sound = boop_sound
+        self.scale = scale
         self.num_lines = num_lines
         self.draw_cursor_flag = draw_cursor
         self.font = FONT[self.font_type]
@@ -148,7 +150,7 @@ class Dialog:
         elif self.portrait or self.autosize:
             self.determine_size()
         else:
-            self.text_width, self.text_height = (WINWIDTH - 24, self.num_lines * 16)
+            self.text_width, self.text_height = (WINWIDTH//self.scale - 24, self.num_lines * 16)
             self.width, self.height = self.text_width + 16, self.text_height + 16
 
         # Position
@@ -162,23 +164,23 @@ class Dialog:
                 pos_y = position[1]
         elif self.portrait:
             # If very big, just hard set to 4 pixels from the left
-            if self.width >= WINWIDTH - 8:
+            if self.width >= WINWIDTH//self.scale - 8:
                 pos_x = 4
             else:
                 desired_center = self.determine_desired_center(self.portrait)
                 pos_x = utils.clamp(desired_center - self.width // 2, 8,
-                                    WINWIDTH - 8 - self.width)
+                                    WINWIDTH//self.scale - 8 - self.width)
                 if pos_x % 8 != 0:
                     pos_x += 4
                 if pos_x == 0:
                     pos_x = 4
-            pos_y = (WINHEIGHT - self.height -
+            pos_y = (WINHEIGHT//self.scale - self.height -
                      event_portrait.EventPortrait.main_portrait_coords[3] - 4)
         else:
             pos_x = 4
             pos_y = WINHEIGHT - self.height - 4
-        self.position = pos_x, pos_y
-
+        self.position = pos_x//self.scale, pos_y//self.scale
+        
         self.background = None
         self.tail = None
         self.dialog_transparency = transparency
@@ -314,13 +316,13 @@ class Dialog:
     def determine_height(self):
         self.text_height = self.font.height * self.num_lines
         self.text_height = max(self.text_height, 16)
-        self.height = self.text_height + 16
+        self.height = (self.text_height + 16)
 
     def determine_size(self):
         self.text_width = self.determine_width()
-        self.text_width = utils.clamp(self.text_width, 48, WINWIDTH - 32)
+        self.text_width = utils.clamp(self.text_width, 48, WINWIDTH//self.scale - 32)
         self.width = self.text_width + 24 - self.text_width % 8
-        if self.width <= WINWIDTH - 16:
+        if self.width <= WINWIDTH//self.scale - 16:
             self.width += 8
         self.determine_height()
 
@@ -335,7 +337,7 @@ class Dialog:
             num_lines = self.num_lines
             if len(block) <= 24:
                 num_lines = 1
-        lines = text_funcs.split(self.font_type, block, num_lines, WINWIDTH - 16)
+        lines = text_funcs.split(self.font_type, block, num_lines, WINWIDTH//self.scale - 16)
         return lines
 
     def _increment_text_indices(self):
@@ -637,7 +639,7 @@ class Dialog:
     def draw_tail(self, surf, portrait: event_portrait.EventPortrait):
         portrait_x = portrait.position[0] + portrait.get_width() // 2
         portrait_y = portrait.position[1] + portrait.get_height() // 2
-        mirror_x = portrait_x < WINWIDTH // 2
+        mirror_x = portrait_x < WINWIDTH//2//self.scale
         mirror_y = self.position[1] > portrait_y
         if mirror_x:
             tail_surf = engine.flip_horiz(self.tail)
@@ -713,7 +715,7 @@ class Dialog:
                     6 + end_pos[1] + self.cursor_offset[self.cursor_offset_index],
                 )
                 surf.blit(self.cursor, cursor_pos)
-
+        
         return surf
 
 

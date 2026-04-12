@@ -1460,7 +1460,6 @@ class ItemChildState(MapState):
             if TradeAbility.targets(self.cur_unit) and item_system.tradeable(self.cur_unit, item):
                 options.append('Trade')
             if item in self.cur_unit.items:
-                #Convoy mentions
                 if item_system.storeable(self.cur_unit, item) and game.game_vars.get('_convoy') and DB.constants.value("long_range_storage"):
                     options.append('Storage')
                 elif item_system.storeable(self.cur_unit, item) and game.game_vars.get('_convoy') and SupplyAbility.targets(self.cur_unit):
@@ -1649,7 +1648,6 @@ class ItemDiscardState(MapState):
         locked_items = [item for idx, item in enumerate(self.cur_unit.items) if locked[idx] and not item_system.is_accessory(self.cur_unit, item)]
 
         if len(locked_items) > item_funcs.get_num_items(self.cur_unit):
-            #Pretty sure these convoy mentions don't need modification
             if self.mode == self.ItemDiscardMode.STORAGE:
                 game.alerts.append(banner.SentToConvoy(locked_items[-1]))
                 action.do(action.StoreItem(self.cur_unit, locked_items[-1]))
@@ -2904,7 +2902,7 @@ class ShopState(State):
         self.message_bg = base_surf.create_base_surf(WINWIDTH//2 + 8, 48, 'menu_bg_clear')
         self.money_counter_disp = gui.PopUpDisplay((223, 32))
 
-        self.bg = background.create_background('rune_background')
+        self.bg = background.create_background('default_background_TWO')
 
         game.state.change('transition_in')
         return 'repeat'
@@ -2989,7 +2987,7 @@ class ShopState(State):
                         #Add item to convoy from shop
                         elif game.game_vars.get('_convoy'):
                             #Currently this forcefully sends the item to the convoy instead of giving you an option. Weird.
-                            action.do(action.PutItemInConvoy(new_item))
+                            action.do(action.PutItemInConvoy(new_item, unit_nid=self.unit.nid))
                             self.current_msg = self.get_dialog(self.convoy_message)
                         self.update_options()
 
@@ -3094,43 +3092,55 @@ class ShopState(State):
             self.menu.update()
 
     def _draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
             self.bg.draw(surf)
-        surf.blit(self.message_bg, (-4, 8))
+        new_surf.blit(self.message_bg, (-4, 8))
         if self.current_msg:
-            self.current_msg.draw(surf)
+            self.current_msg.draw(new_surf)
 
-        surf.blit(self.portrait, (3, 0))
+        new_surf.blit(self.portrait, (3, 0))
 
         money_bg = SPRITES.get('money_bg')
         money_bg = image_mods.make_translucent(money_bg, .1)
-        surf.blit(money_bg, (172, 48))
+        new_surf.blit(money_bg, (172, 48))
         
         #Can't forget to update the display to use personal funds too!        
-        FONT['text-blue'].blit_right(str(self.unit.personal_funds), surf, (223, 48))
-        self.money_counter_disp.draw(surf)
+        FONT['text-blue'].blit_right(str(self.unit.personal_funds), new_surf, (223, 48))
+        self.money_counter_disp.draw(new_surf)
 
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
     def draw(self, surf):
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
+        #_draw has to be passed the base surf instead of new_surf in order to prevent jittering
         surf = self._draw(surf)
 
         if self.state == 'sell':
-            self.sell_menu.draw(surf)
+            self.sell_menu.draw(new_surf)
         elif self.state == 'choice' and self.choice_menu.get_current() == 'Sell':
-            self.sell_menu.draw(surf)
+            self.sell_menu.draw(new_surf)
         else:
-            self.buy_menu.draw(surf)
+            self.buy_menu.draw(new_surf)
             if self.stock:
-                FONT['text'].blit_center(text_funcs.translate('Item'), surf, (80, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Uses'), surf, (128, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Stock'), surf, (156, 64), color='yellow')
-                FONT['text'].blit_center(text_funcs.translate('Price'), surf, (186, 64), color='yellow')
+                FONT['text'].blit_center(text_funcs.translate('Item'), new_surf, (80, 64), color='yellow')
+                FONT['text'].blit_center(text_funcs.translate('Uses'), new_surf, (128, 64), color='yellow')
+                FONT['text'].blit_center(text_funcs.translate('Stock'), new_surf, (156, 64), color='yellow')
+                FONT['text'].blit_center(text_funcs.translate('Price'), new_surf, (186, 64), color='yellow')
             if self.buy_menu.info_flag:
-                surf = self.buy_menu.vert_draw_info(surf)
+                new_surf = self.buy_menu.vert_draw_info(new_surf)
         if self.state == 'choice' and self.current_msg.is_done_or_wait():
-            self.choice_menu.draw(surf)
+            self.choice_menu.draw(new_surf)
 
+        #Scaling
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class RepairShopState(ShopState):
@@ -3170,7 +3180,7 @@ class RepairShopState(ShopState):
         self.message_bg = base_surf.create_base_surf(WINWIDTH//2 + 8, 48, 'menu_bg_clear')
         self.money_counter_disp = gui.PopUpDisplay((223, 32))
 
-        self.bg = background.create_background('rune_background')
+        self.bg = background.create_background('default_background_TWO')
 
         self.update_options()
         game.state.change('transition_in')
@@ -3254,8 +3264,15 @@ class RepairShopState(ShopState):
                 get_sound_thread().play_sfx('Info Out')
 
     def draw(self, surf):
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
+        #_draw still has to be passed the base surf instead of new_surf in order to prevent jittering
         surf = self._draw(surf)
-        self.menu.draw(surf)
+        self.menu.draw(new_surf)
+        
+        #Scaling
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class UnlockSelectState(MapState):

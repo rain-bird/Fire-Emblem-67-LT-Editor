@@ -1007,11 +1007,11 @@ class PrepItemsState(State):
 
         self.bg = game.memory.get('prep_bg')
         if not self.bg:
-            self.bg = background.create_background('rune_background')
+            self.bg = background.create_background('default_background_TWO')
         self.unit = game.memory['current_unit']
         include_other_units_items = game.memory.get('include_other_units', False) or (self.name != 'supply_items')
         game.memory['include_other_units'] = False  # Reset
-        self.menu = menus.Convoy(self.unit, (WINWIDTH - 116, 40), include_other_units_items)
+        self.menu = menus.Convoy(self.unit, (124, 20), include_other_units_items)
 
         self.state = 'free'
         self.sub_menu = None
@@ -1087,7 +1087,7 @@ class PrepItemsState(State):
                             options.append('Nothing')
                         top = self.menu.get_current_index() * 16 + 68 - 8 * len(options)
                         left = 96
-                        top = min(top, WINHEIGHT - 4 - 16 * len(options))
+                        top = min(top, WINHEIGHT//2 - 4 - 16 * len(options))
                         self.sub_menu = menus.Choice(current, options, (left, top))
                     else:
                         self.menu.move_to_convoy()
@@ -1124,7 +1124,7 @@ class PrepItemsState(State):
                     action.do(action.HasTraded(self.unit))
                     convoy_funcs.store_item(item, self.unit)
                     self.menu.update_options()
-                    self.menu.move_to_item_type(item)
+                    #self.menu.move_to_item_type(item)
                     self.state = 'free'
                 elif current == 'Trade':
                     self.state = 'trade_convoy'
@@ -1240,13 +1240,20 @@ class PrepItemsState(State):
             self.sub_menu.update()
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to start with a new surface that is half the size of the screen
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
             self.bg.draw(surf)
-        self.menu.draw(surf)
+        self.menu.draw(new_surf)
         if self.sub_menu:
-            self.sub_menu.draw(surf)
+            self.sub_menu.draw(new_surf)
         if self.menu.info_flag:
-            self.menu.draw_info(surf)
+            self.menu.draw_info(new_surf)
+        
+        #Makes the convoy screen fill the window
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class PrepRestockState(State):

@@ -1216,15 +1216,19 @@ class Transfer(Action):
 
 # === ITEM ACTIONS ==========================================================
 class PutItemInConvoy(Action):
-    def __init__(self, item, party_nid=None):
-        #self.unit = game.memory['current_unit']
+    def __init__(self, item, party_nid=None, unit_nid=None):
         self.item = item
         self.party_nid = party_nid
+        self.unit_nid = unit_nid #This had to be added because unit-specific convoys just wouldn't work properly otherwise
         self.owner_nid = self.item.owner_nid
 
     def do(self):
         self.item.change_owner(None)
-        self.item.depositor = self.item.owner_nid #If you see something like this, it's us doing our best to keep the item up to date
+        if self.unit_nid:
+            self.item.depositor = self.unit_nid
+        else:
+            # If you see something like this, it's us doing our best to keep the item up to date
+            self.item.depositor = self.item.owner_nid
         party = game.get_party(self.party_nid)
         party.convoy.append(self.item)
 
