@@ -56,6 +56,7 @@ class PanoramaBackground():
 
         self.speed = speed
         self.loop = loop
+        self.autoscale = autoscale
         self.fade_state = 'normal'
         self.fade_time = 0
         self.transition = 0
@@ -130,9 +131,17 @@ class PanoramaBackground():
         return False
 
     def _draw(self, surf, image):
+        divisor = 4
+        if not self.autoscale:
+            if image.get_width() == WINWIDTH:
+                divisor -= 2
+            #There should probably be handling for if the widths aren't equal, but this hasn't come up in our project yet
+            #print(image.get_width())
+            #print(WINWIDTH)
+        
         # First draw without screen shake
-        x = WINWIDTH//4 - image.get_width()//2
-        y = WINHEIGHT//4 - image.get_height()//2
+        x = WINWIDTH//divisor - image.get_width()//2
+        y = WINHEIGHT//divisor - image.get_height()//2
         surf.blit(image, (x, y))
         # Then draw with screen shake so we have it as the background and not the jarring map
         s_x = x + self.shake_offset[self.shake_idx][0]
