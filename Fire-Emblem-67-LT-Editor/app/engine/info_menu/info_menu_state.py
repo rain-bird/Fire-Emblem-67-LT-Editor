@@ -669,6 +669,12 @@ class InfoMenuState(State):
                 subtle_stat_bonus = self.unit.subtle_stat_bonus(stat_nid)
                 base_value += subtle_stat_bonus
                 contribution = self.unit.stat_contribution(stat_nid)
+                if stat_nid == 'MOV':
+                    #Movement values display 4x smaller to give the illusion that they aren't 4x as big
+                    base_value//=4
+                    #Gets the key for each change to Movement and uses the keys to find the changes and divide them by 4
+                    for i in contribution.keys():
+                        contribution[i]//=4
                 contribution['Base Value'] = base_value
             desc_text = text_funcs.translate_and_text_evaluate(curr_stat.desc, self=curr_stat, unit=self.unit)
             help_box = help_menu.StatDialog(desc_text or ('%s_desc' % stat_nid), contribution)

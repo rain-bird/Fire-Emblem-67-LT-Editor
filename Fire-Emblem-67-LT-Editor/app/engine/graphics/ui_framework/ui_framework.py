@@ -161,8 +161,8 @@ class RootComponent():
     """Dummy component to simulate the top-level window
     """
     def __init__(self):
-        self.width: int = WINWIDTH//2
-        self.height: int = WINHEIGHT//2
+        self.width: int = WINWIDTH
+        self.height: int = WINHEIGHT
         self.padding: Tuple[int, int, int, int] = (0, 0, 0, 0)
         self.size = (self.width, self.height)
 
@@ -259,7 +259,7 @@ class UIComponent():
             child.set_chronometer(chronometer)
 
     @classmethod
-    def create_base_component(cls, win_width=WINWIDTH//2, win_height=WINHEIGHT//2) -> UIComponent:
+    def create_base_component(cls, win_width=WINWIDTH, win_height=WINHEIGHT) -> UIComponent:
         """Creates a blank component that spans the entire screen; a base component
         to which other components can be attached. This component should not be used
         for any real rendering; it is an organizational tool, and should not be

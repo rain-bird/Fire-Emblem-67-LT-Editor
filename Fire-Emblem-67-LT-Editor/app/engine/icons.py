@@ -222,6 +222,12 @@ def draw_stat(surf, stat_nid, unit, topright, compact=False):
     bonus = unit.stat_bonus(stat_nid)
     subtle_bonus = unit.subtle_stat_bonus(stat_nid)
     max_stat = unit.get_stat_cap(stat_nid)
+    #Movement values display 4x smaller to give the illusion that they aren't 4x as big
+    if stat_nid == "MOV":
+        value//=4
+        bonus//=4
+        subtle_bonus//=4
+        max_stat//=4
     if compact:
         if value >= max_stat:
             draw_glow(surf, FONT['text_big-green'], str(value + bonus), topright, HAlignment.RIGHT)
