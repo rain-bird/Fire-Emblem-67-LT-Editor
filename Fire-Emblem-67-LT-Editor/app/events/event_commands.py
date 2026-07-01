@@ -2936,6 +2936,20 @@ Nothing special beyond that. The engine doesn't expect you to be able to access 
     keywords = ["Unit"]
     keyword_types = ["Unit"]
 
+class PawnShop(EventCommand):
+    nid = 'pawn_shop'
+    tag = Tags.MISCELLANEOUS
+
+    desc = \
+        """
+Causes *Unit* to enter the pawn shop.
+
+Nothing special beyond that. The engine handles the pawn shop stock itself.
+        """
+
+    keywords = ["Unit"]
+    keyword_types = ["Unit"]
+
 class Choice(EventCommand):
     nid = 'choice'
     tag = Tags.MISCELLANEOUS

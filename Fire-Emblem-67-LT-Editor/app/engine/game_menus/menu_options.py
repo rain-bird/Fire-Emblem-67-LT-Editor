@@ -559,6 +559,73 @@ class StockValueItemOption(ValueItemOption):
             stock_string = str(self.stock)
         render_text(surf, [main_font], [stock_string], [main_color], (x + 128, y), HAlignment.RIGHT)
 
+class PawnValueItemOption(ValueItemOption):
+    def draw(self, surf, x, y):
+        icon = icons.get_icon(self.item)
+        if icon:
+            surf.blit(icon, (x + 2, y))
+        uses_config = UsesDisplayConfig.from_item(self.item)
+        main_color, uses_color = self.get_color()
+        main_font = self.font
+        width = text_width(main_font, self.item.name)
+        if width > 60:
+            main_font = 'narrow'
+        uses_font = 'text'
+        render_text(surf, [main_font], [self.item.name], [main_color], (x + 20, y))
+        
+        uses_string = '--'
+        if self.uses_config and self.uses_config.get_uses() is not None:
+            uses_string = self.uses_config.get_uses()
+            uses_color = self.uses_config.get_color() or uses_color
+        elif self.item.data.get('uses') is not None:
+            uses_string = str(self.item.data['uses'])
+        elif self.item.parent_item and self.item.parent_item.data.get('uses') is not None:
+            uses_string = str(self.item.parent_item.data['uses'])
+        elif self.item.c_uses is not None:
+            uses_string = str(self.item.data['c_uses'])
+        elif self.item.parent_item and self.item.parent_item.data.get('c_uses') is not None:
+            uses_string = str(self.item.parent_item.data['c_uses'])
+        elif self.item.cooldown is not None:
+            uses_string = str(self.item.data['cooldown'])
+        render_text(surf, [uses_font], [uses_string], [uses_color], (x + 100, y), HAlignment.RIGHT)
+        
+        value_color = 'grey'
+        value_string = '--'
+        owner = game.get_unit(self.item.owner_nid)
+        #Modify the "value" variables to include logic for broken_price items.
+        if self.disp_value == 'buy':
+            value = 0
+            #If the item is a valid broken item, set its displayed price to 1000 (the same as FE4). Otherwise it's default.
+            if self.item.broken_price > 0:
+                value = 1000
+            else:
+                value = item_funcs.buy_price(owner, self.item)
+            
+            if value:
+                value_string = str(value)
+                
+                #More of the same.
+                unit = game.memory['current_unit']
+                if value <= unit.personal_funds:
+                    value_color = 'blue'
+            else:
+                value_string = '--'
+        elif self.disp_value == 'sell':
+            value = 0
+            show_value = False
+            #If the item is a valid broken item, force the game to display its sell price of 0 (the same as FE4). Otherwise it's default.
+            if self.item.broken_price > 0:
+                show_value = True
+            else:
+                value = item_funcs.sell_price(owner, self.item)
+            
+            if value or show_value:
+                value_string = str(value)
+                value_color = 'blue'
+            else:
+                value_string = '--'
+        render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), HAlignment.RIGHT)
+
 class UnitOption(BasicOption):
     def __init__(self, idx, unit):
         self.idx = idx

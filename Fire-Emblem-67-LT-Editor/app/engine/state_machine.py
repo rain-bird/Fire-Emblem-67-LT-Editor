@@ -102,6 +102,7 @@ class StateMachine():
              'ai': general_states.AIState,
              'shop': general_states.ShopState,
              'repair_shop': general_states.RepairShopState,
+             'pawn_shop': general_states.PawnShopState,
              'unlock_select': general_states.UnlockSelectState,
              'exp': level_up.ExpState,
              'bonus_exp': level_up.ExpState,

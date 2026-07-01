@@ -3127,6 +3127,19 @@ def repair_shop(self: Event, unit, flags=None):
     self.game.state.change('repair_shop')
     self.state = 'paused'
 
+def pawn_shop(self: Event, unit, flags=None):
+    flags = flags or set()
+
+    new_unit = self._get_unit(unit)
+    if not new_unit:
+        self.logger.error("pawn shop: Must have a unit visit the pawn shop!")
+        return
+    unit = new_unit
+    self.game.memory['current_unit'] = unit
+
+    self.game.state.change('pawn_shop')
+    self.state = 'paused'
+
 def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int = 0, orientation: Orientation = Orientation.VERTICAL,
            alignment: Alignments = Alignments.CENTER, bg: str = 'menu_bg_base', event_nid: str = None, entry_type: str = 'str',
            dimensions: Optional[Tuple[str, str]] = None, text_align: HAlignment = HAlignment.LEFT, flags=None):

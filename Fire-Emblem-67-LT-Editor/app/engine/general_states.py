@@ -2840,7 +2840,9 @@ class ShopState(State):
             self.back_message = apply_flavor('%s_back')
             self.leave_message = apply_flavor('%s_leave')
             self.buy_again_message = apply_flavor('%s_buy_again')
-            self.convoy_message = apply_flavor('%s_convoy') #Convoy mention
+            self.bought_out = apply_flavor('%s_bought_out') #A new message for if you've bought everything in the shop
+            self.nothing_for_sale = apply_flavor('%s_nothing') #A new message for if you've bought everything in the shop but try buying anyway
+            self.convoy_message = apply_flavor('%s_convoy')
             self.no_stock_message = apply_flavor('%s_no_stock')
             self.no_money_message = apply_flavor('%s_no_money')
             self.max_inventory_message = apply_flavor('%s_max_inventory')
@@ -2855,6 +2857,8 @@ class ShopState(State):
             self.back_message = 'armory_back'
             self.leave_message = 'armory_leave'
             self.buy_again_message = 'shop_buy_again'
+            self.bought_out = 'shop_bought_out' #Can't forget the generic versions
+            self.nothing_for_sale = 'shop_nothing'
             self.convoy_message = 'shop_convoy'
             self.no_stock_message = 'shop_no_stock'
             self.no_money_message = 'shop_no_money'
@@ -2974,18 +2978,25 @@ class ShopState(State):
                     if self.unit.personal_funds - value >= 0 and \
                             self.buy_menu.get_stock() != 0 and \
                             (not item_funcs.inventory_full(self.unit, new_item) or
-                             game.game_vars.get('_convoy')): #convoy mention. but why?
+                             game.game_vars.get('_convoy')):
                         action.do(action.HasTraded(self.unit))
                         get_sound_thread().play_sfx('GoldExchange')
                         #This is the same as before but we pass the unit instead of the current party.
                         action.do(action.GainMoney(self.unit, -value))
                         stock_marker = '__shop_%s_%s' % (self.shop_id, item.nid)
+                        #stock_check = self.buy_menu.get_stock() #Runs before decrement_stock in case this item gets removed and can't be checked anymore
+                        #print(stock_check)
                         self.buy_menu.decrement_stock()
                         self.money_counter_disp.start(-value)
                         game.register_item(new_item)
                         if not item_funcs.inventory_full(self.unit, new_item):
                             action.do(action.GiveItem(self.unit, new_item))
-                            self.current_msg = self.get_dialog(self.buy_again_message)
+                            #New dialogue for if there's no stock. This was not tested for compatability with shops that don't use stock
+                            if self.buy_menu.get_stock() > 0:
+                                #As far as I can tell, stock will only ever be less than 0 if the shop is empty
+                                self.current_msg = self.get_dialog(self.buy_again_message)
+                            else:
+                                self.current_msg = self.get_dialog(self.bought_out)
                         #Add item to convoy from shop
                         elif game.game_vars.get('_convoy'):
                             #Currently this forcefully sends the item to the convoy instead of giving you an option. Weird.
@@ -3006,6 +3017,10 @@ class ShopState(State):
                         # No inventory space
                         get_sound_thread().play_sfx('Select 4')
                         self.current_msg = self.get_dialog(self.max_inventory_message)
+                else:
+                    # Bought everything and tried buying again
+                    get_sound_thread().play_sfx('Select 4')
+                    self.current_msg = self.get_dialog(self.nothing_for_sale)
                         
             elif self.state == 'sell':
                 item = self.sell_menu.get_current()
@@ -3014,7 +3029,7 @@ class ShopState(State):
                     if item.value:
                         action.do(action.HasTraded(self.unit))
                         get_sound_thread().play_sfx('GoldExchange')
-                        #Manging unit funds used to be super janky until I made a unit stat for it.
+                        #Managing unit funds used to be super janky until I made a unit stat for it.
                         action.do(action.GainMoney(self.unit, value))
                         #action.do(action.UpdateRecords('money', (game.current_party, value)))
                         self.money_counter_disp.start(value)
@@ -3256,6 +3271,329 @@ class RepairShopState(ShopState):
     def draw(self, surf):
         surf = self._draw(surf)
         self.menu.draw(surf)
+        return surf
+
+class PawnShopState(ShopState):
+    name = 'pawn_shop'
+
+    def start(self):
+        self.fluid = FluidScroll()
+        
+        #Every pawn shop is the same one
+        self.shop_id = 'pawn'
+        self.unit = game.memory['current_unit']
+        
+        def apply_flavor(string: str) -> str:
+            if (string % 'pawn') in DB.translations:
+                return string % 'pawn'
+            else:
+                return string % 'shop'
+        
+        if 'pawn_portrait' in SPRITES:
+            self.portrait = SPRITES.get('pawn_portrait')
+        else:
+            self.portrait = SPRITES.get('armory_portrait')
+        self.opening_message = apply_flavor('%s_opener')
+        self.opening_message = apply_flavor('%s_opener')
+        self.buy_message = apply_flavor('%s_buy')
+        self.back_message = apply_flavor('%s_back')
+        self.leave_message = apply_flavor('%s_leave')
+        self.buy_again_message = apply_flavor('%s_buy_again')
+        self.bought_out = apply_flavor('%s_bought_out')
+        self.nothing_for_sale = apply_flavor('%s_nothing')
+        self.convoy_message = apply_flavor('%s_convoy')
+        self.no_stock_message = apply_flavor('%s_no_stock')
+        self.no_money_message = apply_flavor('%s_no_money')
+        self.max_inventory_message = apply_flavor('%s_max_inventory')
+        self.sell_again_message = apply_flavor('%s_sell_again')
+        self.again_message = apply_flavor('%s_again')
+        self.no_value_message = apply_flavor('%s_no_value')
+        self.preview_message = apply_flavor('%s_preview')
+        
+        if game.game_vars['pawn_items'] == 0:
+            game.game_vars['pawn_items'] = []
+        items = game.game_vars['pawn_items']
+        
+        topleft = (44, WINHEIGHT//2 - 16 * 5 - 8 - 4)
+        # Sell Menu
+        my_items = item_funcs.get_all_tradeable_items(self.unit)
+        self.sell_menu = menus.PawnShop(self.unit, my_items, topleft, disp_value='sell')
+        self.sell_menu.set_limit(5)
+        self.sell_menu.set_hard_limit(True)
+        self.sell_menu.gem = True
+        self.sell_menu.shimmer = 0
+        self.sell_menu.set_takes_input(False)
+        
+        topleft = (36, topleft[1] + 4)
+        # Buy Menu
+        self.buy_menu = menus.PawnShop(self.unit, items, topleft, disp_value='buy', stock=True)
+        self.buy_menu.set_limit(5)
+        self.buy_menu.set_hard_limit(True)
+        self.buy_menu.gem = True
+        self.buy_menu.shimmer = 0
+        self.buy_menu.set_takes_input(False)
+
+        self.choice_menu = menus.Choice(self.unit, ["Buy", "Sell"], (120, 32), background=None)
+        self.choice_menu.set_horizontal(True)
+        self.choice_menu.set_color(['convo-white', 'convo-white'])
+        self.choice_menu.set_highlight(False)
+        self.menu = None  # For input
+
+        self.state = 'open'
+        self.current_msg = self.get_dialog(self.opening_message)
+
+        self.message_bg = base_surf.create_base_surf(WINWIDTH//2 + 8, 48, 'menu_bg_clear')
+        self.money_counter_disp = gui.PopUpDisplay((223, 32))
+
+        self.bg = background.create_background('default_background_TWO')
+
+        game.state.change('transition_in')
+        return 'repeat'
+
+    def begin(self):
+        self.fluid.reset_on_change_state()
+
+    def get_dialog(self, text):
+        text = text_funcs.translate_and_text_evaluate(text, self=self)
+        d = dialog.Dialog(text)
+        d.position = (60, 8)
+        d.text_width = WINWIDTH//2 - 80
+        d.width = d.text_width + 16
+        d.font = FONT['convo-white']
+        d.font_color = 'white'
+        d.reformat()
+        return d
+
+    def update_options(self):
+        self.sell_menu.update_options(item_funcs.get_all_tradeable_items(self.unit))
+
+    def take_input(self, event):
+        first_push = self.fluid.update()
+        directions = self.fluid.get_directions()
+
+        if self.menu:
+            self.menu.handle_mouse()
+            if 'DOWN' in directions or 'RIGHT' in directions:
+                if self.menu.move_down(first_push):
+                    get_sound_thread().play_sfx('Select 6')
+            elif 'UP' in directions or 'LEFT' in directions:
+                if self.menu.move_up(first_push):
+                    get_sound_thread().play_sfx('Select 6')
+
+        if event == 'SELECT':
+            if self.state == 'open':
+                get_sound_thread().play_sfx('Select 1')
+                self.current_msg.hurry_up()
+                if self.current_msg.is_done_or_wait():
+                    self.state = 'choice'
+                    self.menu = self.choice_menu
+
+            elif self.state == 'choice':
+                current = self.choice_menu.get_current()
+                if current == 'Buy':
+                    #You can only enter the Buy menu if there is something for sale.
+                    if len(game.game_vars['pawn_items']) > 0:
+                        get_sound_thread().play_sfx('Select 1')
+                        self.menu = self.buy_menu
+                        self.state = 'buy'
+                        self.current_msg = self.get_dialog(self.buy_message)
+                        self.buy_menu.set_takes_input(True)
+                    else:
+                        get_sound_thread().play_sfx('Select 4')
+                        self.current_msg = self.get_dialog(self.nothing_for_sale)
+                elif current == 'Sell' and item_funcs.get_all_tradeable_items(self.unit):
+                    get_sound_thread().play_sfx('Select 1')
+                    self.menu = self.sell_menu
+                    self.state = 'sell'
+                    self.sell_menu.set_takes_input(True)
+
+            elif self.state == 'buy':               
+                item = self.buy_menu.get_current()
+                if item:
+                    #If this item is a broken item, it can be bought for 1000 (the same as FE4). Otherwise it's default.
+                    value = 0
+                    if item.broken_price > 0:
+                        value = 1000
+                    else:
+                        value = item_funcs.buy_price(self.unit, item)
+                    #You'll notice there's no "new_item" anymore. This is because we give the player the specific pawned item
+                    if self.unit.personal_funds - value >= 0 and \
+                            self.buy_menu.get_stock() != 0 and \
+                            (not item_funcs.inventory_full(self.unit, item) or
+                             game.game_vars.get('_convoy')):
+                        action.do(action.HasTraded(self.unit))
+                        get_sound_thread().play_sfx('GoldExchange')
+                        action.do(action.GainMoney(self.unit, -value))
+                        stock_marker = '__shop_%s_%s' % (self.shop_id, item.nid)
+                        self.buy_menu.decrement_stock()
+                        self.money_counter_disp.start(-value)
+                        if not item_funcs.inventory_full(self.unit, item):
+                            action.do(action.GiveItem(self.unit, item))
+                            #New dialogue for if there's no stock
+                            if len(game.game_vars['pawn_items']) > 0:
+                                self.current_msg = self.get_dialog(self.buy_again_message)
+                            else:
+                                self.current_msg = self.get_dialog(self.bought_out)
+                        #Add item to convoy from shop
+                        elif game.game_vars.get('_convoy'):
+                            #This has the same force convoy problem as the default shop.
+                            action.do(action.PutItemInConvoy(item, unit_nid=self.unit.nid))
+                            self.current_msg = self.get_dialog(self.convoy_message)
+                        self.update_options()
+                    
+                    # How it could fail
+                    elif self.buy_menu.get_stock() == 0:
+                        # We don't have any more of this in stock (shouldn't be possible)
+                        get_sound_thread().play_sfx('Select 4')
+                        self.current_msg = self.get_dialog(self.no_stock_message)
+                    elif self.unit.personal_funds - value < 0:
+                        # You don't have enough money
+                        get_sound_thread().play_sfx('Select 4')
+                        self.current_msg = self.get_dialog(self.no_money_message)
+                    else:
+                        # No inventory space
+                        get_sound_thread().play_sfx('Select 4')
+                        self.current_msg = self.get_dialog(self.max_inventory_message)
+                else:
+                    # Bought everything and tried buying again
+                    get_sound_thread().play_sfx('Select 4')
+                    self.current_msg = self.get_dialog(self.bought_out)
+                        
+            elif self.state == 'sell':
+                item = self.sell_menu.get_current()
+                if item:
+                    value = item_funcs.sell_price(self.unit, item)
+                    #You can sell anything to the pawn shop. Even if it's something worthless like a Broken Item
+                    action.do(action.HasTraded(self.unit))
+                    get_sound_thread().play_sfx('GoldExchange')
+                    #Unit stat funds
+                    action.do(action.GainMoney(self.unit, value))
+                    self.money_counter_disp.start(value)
+                    #Selling an item also updates the pawn shop's stock
+                    game.game_vars['pawn_items'].append(item)
+                    self.buy_menu.create_options(game.game_vars['pawn_items'])
+                    action.do(action.RemoveItem(self.unit, item))
+                    if value:
+                        self.current_msg = self.get_dialog(self.sell_again_message)
+                    else:
+                        self.current_msg = self.get_dialog(self.no_value_message)
+                    self.update_options()
+                else:
+                    # You didn't choose anything to sell
+                    get_sound_thread().play_sfx('Select 4')
+
+            elif self.state == 'close':
+                get_sound_thread().play_sfx('Select 1')
+                if self.current_msg.is_done_or_wait():
+                    if self.unit and self.unit.has_traded:
+                        action.do(action.HasAttacked(self.unit))
+                    game.state.change('transition_pop')
+                else:
+                    self.current_msg.hurry_up()
+
+            elif self.state == 'preview':
+                if self.menu.info_flag:
+                    self.menu.toggle_info()
+                    get_sound_thread().play_sfx('Info Out')
+                else:
+                    get_sound_thread().play_sfx('Select 4')
+                    self.state = 'close'
+                    self.current_msg = self.get_dialog(self.leave_message)
+
+        elif event == 'BACK':
+            if self.state == 'open' or self.state == 'close':
+                get_sound_thread().play_sfx('Select 4')
+                if self.unit and self.unit.has_traded:
+                    action.do(action.HasAttacked(self.unit))
+                game.state.change('transition_pop')
+
+            elif self.state == 'choice':
+                get_sound_thread().play_sfx('Select 4')
+                self.state = 'close'
+                self.current_msg = self.get_dialog(self.leave_message)
+
+            elif self.state == 'buy' or self.state == 'sell':
+                if self.menu.info_flag:
+                    self.menu.toggle_info()
+                    get_sound_thread().play_sfx('Info Out')
+                else:
+                    get_sound_thread().play_sfx('Select 4')
+                    self.state = 'choice'
+                    self.menu.set_takes_input(False)
+                    self.menu = self.choice_menu
+                    self.current_msg = self.get_dialog(self.again_message) #maybe change this
+
+            elif self.state == 'preview':
+                if self.menu.info_flag:
+                    self.menu.toggle_info()
+                    get_sound_thread().play_sfx('Info Out')
+                else:
+                    get_sound_thread().play_sfx('Select 4')
+                    self.state = 'close'
+                    self.current_msg = self.get_dialog(self.leave_message)
+
+        elif event == 'INFO':
+            if self.state == 'buy' or self.state == 'sell' or self.state == 'preview':
+                self.menu.toggle_info()
+                if self.menu.info_flag:
+                    get_sound_thread().play_sfx('Info In')
+                else:
+                    get_sound_thread().play_sfx('Info Out')
+
+    def update(self):
+        if self.current_msg:
+            self.current_msg.update()
+        if self.menu:
+            self.menu.update()
+
+    def _draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
+        if self.bg:
+            self.bg.draw(surf)
+        new_surf.blit(self.message_bg, (-4, 8))
+        if self.current_msg:
+            self.current_msg.draw(new_surf)
+
+        new_surf.blit(self.portrait, (3, 0))
+
+        money_bg = SPRITES.get('money_bg')
+        money_bg = image_mods.make_translucent(money_bg, .1)
+        new_surf.blit(money_bg, (172, 48))
+            
+        FONT['text-blue'].blit_right(str(self.unit.personal_funds), new_surf, (223, 48))
+        self.money_counter_disp.draw(new_surf)
+
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
+        return surf
+
+    def draw(self, surf):
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
+        #_draw has to be passed the base surf instead of new_surf in order to prevent jittering
+        surf = self._draw(surf)
+
+        if self.state == 'sell':
+            self.sell_menu.draw(new_surf)
+        elif self.state == 'choice' and self.choice_menu.get_current() == 'Sell':
+            self.sell_menu.draw(new_surf)
+        else:
+            self.buy_menu.draw(new_surf)
+            FONT['text'].blit_center(text_funcs.translate('Item'), new_surf, (80, 64), color='yellow')
+            FONT['text'].blit_center(text_funcs.translate('Uses'), new_surf, (128, 64), color='yellow')
+            #FONT['text'].blit_center(text_funcs.translate('Stock'), new_surf, (156, 64), color='yellow')
+            FONT['text'].blit_center(text_funcs.translate('Price'), new_surf, (186, 64), color='yellow')
+            if self.buy_menu.info_flag:
+                new_surf = self.buy_menu.vert_draw_info(new_surf)
+        if self.state == 'choice' and self.current_msg.is_done_or_wait():
+            self.choice_menu.draw(new_surf)
+
+        #Scaling
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class UnlockSelectState(MapState):

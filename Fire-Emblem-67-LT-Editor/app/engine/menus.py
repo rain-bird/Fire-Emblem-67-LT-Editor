@@ -829,6 +829,73 @@ class Shop(Choice):
 class RepairShop(Shop):
     default_option = menu_options.RepairValueItemOption
 
+class PawnShop(Choice):
+    default_option = menu_options.PawnValueItemOption
+
+    def __init__(self, owner, options, topleft=None, disp_value='sell', background='menu_bg_base', info=None, stock=None):
+        self.disp_value = disp_value
+        #This should only ever be True or None. This is because Pawn Shops don't technically have stock,
+        #as everything would only ever have a stock of 1 (present) or 0 (sold out and removed)
+        self.stock = stock
+        super().__init__(owner, options, topleft, background, info)
+
+    def get_menu_width(self):
+        if self.stock:
+            return 168
+        else:
+            return 152
+
+    def decrement_stock(self):
+        if self.stock:
+            #Since each item can only be present or not present, decrementing its stock means it is not present
+            game.game_vars['pawn_items'].pop(self.current_index)
+            self.options.pop(self.current_index)
+            #Update the options
+            self.create_options(game.game_vars['pawn_items'])
+
+    def get_stock(self):
+        if self.stock:
+            return 1
+        else:
+            return -1
+
+    #As far as I'm aware, the engine never actually calls this function
+    def set_stock(self, stock):
+        print("If you're seeing this: no you aren't.\nBut for real, you should report this.")
+        #self.stock = stock
+        #for idx, option in enumerate(self.options):
+        #    option.stock[idx] = 1
+
+    def create_options(self, options, info_descs=None):
+        self.options.clear()
+        
+        for idx, option in enumerate(options):
+            option = self.default_option(idx, option, self.disp_value)
+            option.help_box = option.get_help_box()
+            self.options.append(option)
+        
+        #Immediately try to fill empty space with empty options to prevent weirdness with how the game draws the item box
+        if self.stock:
+            #Initialize 'length_of_options' if it hasn't been (I would've used a self attribute but those aren't saved)
+            if game.level_vars['length_of_options'] == 0:
+                game.level_vars['length_of_options'] = len(self.options)
+            #Check if there's too few options
+            if game.level_vars['length_of_options'] < 5:
+                amount_missing = 5 - game.level_vars['length_of_options']
+                i = 0
+                while i < amount_missing:
+                    #Appends the empty options
+                    self.options.append(menu_options.EmptyOption(len(self.options) + 1))
+                    game.level_vars['length_of_options'] += 1
+                    i += 1
+
+        if self.hard_limit:
+            for num in range(self.limit - len(options)):
+                option = menu_options.EmptyOption(len(options) + num)
+                if self.stock:
+                    option._width = 168
+                self.options.append(option)
+
 class Trade(Simple):
     """
     Menu used for trading items between two units
