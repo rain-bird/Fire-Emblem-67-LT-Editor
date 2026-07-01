@@ -51,7 +51,7 @@ Also I added a portrait of the Money Man from FE6 that is used by the Pawn Shop.
  - combat_calcs.py - outspeed: Units can only double in combat if they have a skill component with the nid "pursuit." Units that meet this criteria can also get doubled if they have a low enough negative Action Speed. HOWEVER; if either unit has a skill component with the nid "wary_fighter," then doubling can NEVER occur for either unit.<br/>
  - special_components.py - Pursuit & Wary_Fighter - Two new skill components that don't technically do anything except tell the combat_calcs that the unit has them.<br/>
 
-Ordinarily I wouldn't dedicate a whole section to one change, but this one was a big one. Also making this function based on nids probably isn't good practice, but it was definitely easy.<br/>
+Ordinarily I wouldn't dedicate a whole section to one change, but this one was a big one.<br/>
 
 ### === Other ===
  - info_menu_state.py - create_personal_data_surf: Changed the order of unit stats to match FE GBA (including hiding Rating).<br/>
