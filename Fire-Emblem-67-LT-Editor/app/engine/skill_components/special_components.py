@@ -185,3 +185,15 @@ class Nihil(SkillComponent):
     def test_off(self, playback, unit, item, target, item2, mode):
         game.on_alter_game_state()
         self._condition = True
+
+class Pursuit(SkillComponent):
+    nid = 'pursuit'
+    desc = "Allows the unit to double."
+    tag = SkillTags.CUSTOM
+    author = 'Wittlog'
+
+class Wary_Fighter(SkillComponent):
+    nid = 'wary_fighter'
+    desc = "Prevents both units from doubling. Doesn't affect consecutive strikes like Brave weapons or Astra procs."
+    tag = SkillTags.CUSTOM
+    author = 'Wittlog'
