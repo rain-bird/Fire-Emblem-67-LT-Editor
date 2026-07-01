@@ -321,14 +321,14 @@ def speak_style(self: Event, style: NID, speaker: NID=None, position: Alignments
 
 def say(self: Event, speaker_or_style: str, text: List[str], text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor=None,
-          message_tail=None, transparency=None, name_tag_bg=None, boop_sound=None, flags=None):
+          message_tail=None, transparency=None, name_tag_bg=None, boop_sound=None, scale: int = 2, flags=None):
     joined_text = '{sub_break}'.join(text)
     speak(self, speaker_or_style, joined_text, text_position, width, style_nid, text_speed, font_color, font_type, dialog_box, num_lines, draw_cursor,
-          message_tail, transparency, name_tag_bg, boop_sound, flags)
+          message_tail, transparency, name_tag_bg, boop_sound, scale, flags)
 
 def speak(self: Event, speaker_or_style: str, text, text_position: Point | Alignments=None, width=None, style_nid=None, text_speed=None,
           font_color=None, font_type=None, dialog_box=None, num_lines=None, draw_cursor: bool=None,
-          message_tail=None, transparency=None, name_tag_bg=None, boop_sound=None, flags=None):
+          message_tail=None, transparency=None, name_tag_bg=None, boop_sound=None, scale: int = 2, flags=None):
     flags = flags or set()
     text = dialog.process_dialog_shorthand(text)
 
@@ -341,6 +341,7 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
                               transparency, name_tag_bg, boop_sound, flags)
 
     style = self._resolve_speak_style(speaker_or_style, style_nid, manual_style)
+    
     speaker = style.speaker or ''
     if speaker == 'None':
         speaker = ''
@@ -386,7 +387,7 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
                           style_nid=style_nid, autosize=autosize, speed=style.speed,
                           font_color=style.font_color, font_type=style.font_type, num_lines=style.num_lines,
                           draw_cursor=style.draw_cursor, message_tail=style.message_tail, transparency=style.transparency,
-                          name_tag_bg=style.name_tag_bg, boop_sound=style.boop_sound, flags=flags)
+                          name_tag_bg=style.name_tag_bg, boop_sound=style.boop_sound, scale=scale, flags=flags)
         if portrait and 'autogray' in flags:
             self._saturate_portrait(portrait)
 
@@ -402,7 +403,7 @@ def speak(self: Event, speaker_or_style: str, text, text_position: Point | Align
         else:  # Usually we go to a dialog state
             self.state = 'dialog'
     # End else
-
+    
     # Bring portrait to forefront
     if portrait and 'low_priority' not in flags:
         portrait.priority = self.priority_counter
@@ -3142,7 +3143,7 @@ def pawn_shop(self: Event, unit, flags=None):
 
 def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int = 0, orientation: Orientation = Orientation.VERTICAL,
            alignment: Alignments = Alignments.CENTER, bg: str = 'menu_bg_base', event_nid: str = None, entry_type: str = 'str',
-           dimensions: Optional[Tuple[str, str]] = None, text_align: HAlignment = HAlignment.LEFT, flags=None):
+           dimensions: Optional[Tuple[str, str]] = None, text_align: HAlignment = HAlignment.LEFT, scale: int = 1, flags=None):
     flags = flags or set()
 
     nid = nid or ""
@@ -3192,7 +3193,7 @@ def choice(self: Event, nid: NID, title: str, choices: TableRows, row_width: int
     self.game.memory['player_choice'] = (nid, header, data, row_width,
                                          orientation, entry_type, should_persist,
                                          alignment, bg, event_nid, size, no_cursor,
-                                         arrows, scroll_bar, text_align, backable, event_context)
+                                         arrows, scroll_bar, text_align, backable, event_context, scale)
     self.game.state.change('player_choice')
     self.state = 'paused'
 

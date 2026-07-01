@@ -597,8 +597,8 @@ Extra flags:
         """
 
     keywords = ['SpeakerOrStyle', 'Text']
-    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound']
-    keyword_types = ['Speaker', 'String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound']
+    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound', 'Scale']
+    keyword_types = ['Speaker', 'String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound', 'PositiveInteger']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound', 'autogray']
 
 class Say(EventCommand):
@@ -637,8 +637,8 @@ Extra flags:
         """
 
     keywords = ['SpeakerOrStyle', '*Text']
-    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound']
-    keyword_types = ['Speaker', '*String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound']
+    optional_keywords = ['TextPosition', 'Width', 'StyleNid', 'TextSpeed', 'FontColor', 'FontType', 'DialogBox', 'NumLines', 'DrawCursor', 'MessageTail', 'Transparency', 'NameTagBg', 'BoopSound', 'Scale']
+    keyword_types = ['Speaker', '*String', 'AlignOrPosition', 'Width', 'DialogVariant', 'Float', 'FontColor', 'Font', 'MaybeSprite', 'WholeNumber', 'Bool', 'MaybeSprite', 'Float', 'MaybeSprite', 'Sound', 'PositiveInteger']
     _flags = ['low_priority', 'hold', 'no_popup', 'fit', 'no_block', 'no_talk', 'no_sound', 'autogray']
 
 class Unhold(EventCommand):
@@ -3012,8 +3012,8 @@ via hitting the back button, and the event will go on as normal.
  """
 
     keywords = ['Nid', 'Title', 'Choices']
-    optional_keywords = ['RowWidth', 'Orientation', 'Alignment', 'BG', 'EventNid', 'EntryType', 'Dimensions', 'TextAlign']
-    keyword_types = ['GeneralVar', 'String', 'EvaluableString', 'Width', 'Orientation', 'AlignOrPosition', 'Sprite', 'Event', 'TableEntryType', 'Size', 'HAlign']
+    optional_keywords = ['RowWidth', 'Orientation', 'Alignment', 'BG', 'EventNid', 'EntryType', 'Dimensions', 'TextAlign', 'Scale']
+    keyword_types = ['GeneralVar', 'String', 'EvaluableString', 'Width', 'Orientation', 'AlignOrPosition', 'Sprite', 'Event', 'TableEntryType', 'Size', 'HAlign', 'PositiveInteger']
     _flags = ['persist', 'expression', 'no_bg', 'no_cursor', 'arrows', 'no_arrows', 'scroll_bar', 'no_scroll_bar', 'backable']
 
 class Unchoice(EventCommand):

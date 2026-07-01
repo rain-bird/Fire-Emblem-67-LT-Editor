@@ -9,17 +9,17 @@ horizontal_screen_positions = {'OffscreenLeft': -96,
                                'Left': 0,
                                'MidLeft': 24,
                                'CenterLeft': 24,
-                               'CenterRight': WINWIDTH - 120,
-                               'MidRight': WINWIDTH - 120,
-                               'LevelUpRight': WINWIDTH - 100,
-                               'Right': WINWIDTH - 96,
-                               'RightCorner': WINWIDTH - 80,
-                               'FarRight': WINWIDTH - 72,
-                               'OffscreenRight': WINWIDTH}
+                               'CenterRight': WINWIDTH//2 - 120,
+                               'MidRight': WINWIDTH//2 - 120,
+                               'LevelUpRight': WINWIDTH//2 - 100,
+                               'Right': WINWIDTH//2 - 96,
+                               'RightCorner': WINWIDTH//2 - 80,
+                               'FarRight': WINWIDTH//2 - 72,
+                               'OffscreenRight': WINWIDTH//2}
 
 vertical_screen_positions = {'Top': 0,
-                             'Middle': (WINHEIGHT - 80) // 2,
-                             'Bottom': WINHEIGHT - 80}
+                             'Middle': (WINHEIGHT//2 - 80) // 2,
+                             'Bottom': WINHEIGHT//2 - 80}
 
 def parse_screen_position(pos: Tuple | str) -> Tuple[Point, bool]:
     """Returns a tuple of Point (on screen) and bool (indicating if the portrait should be mirrored)"""
@@ -53,11 +53,11 @@ def get_desired_center(x: int) -> int:
         return 80
     elif x < 104:  # MidLeft
         return 104
-    elif x > WINWIDTH - 48:  # FarRight
-        return WINWIDTH - 8
-    elif x > WINWIDTH - 72:  # Right
-        return WINWIDTH - 88
-    elif x > WINWIDTH - 144:  # MidRight
-        return WINWIDTH - 112
+    elif x > WINWIDTH//2 - 48:  # FarRight
+        return WINWIDTH//2 - 8
+    elif x > WINWIDTH//2 - 72:  # Right
+        return WINWIDTH/2 - 88
+    elif x > WINWIDTH//2 - 144:  # MidRight
+        return WINWIDTH//2 - 112
     else:
-        return WINWIDTH//2
+        return WINWIDTH//4

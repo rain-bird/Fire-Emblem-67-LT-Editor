@@ -41,21 +41,21 @@ class TitleStartState(State):
         game.memory['title_bg'] = self.bg
         press_start_sprite = SPRITES.get('press_start')
         if press_start_sprite:
-            self.press_start = gui.Logo(press_start_sprite, (WINWIDTH//2, 4*WINHEIGHT//5))
+            self.press_start = gui.Logo(press_start_sprite, (WINWIDTH//4, 2*WINHEIGHT//5))
         else:
             self.press_start = None
 
         if logo:
             num_frames = 1
             speed = 64
-            height = utils.clamp(WINHEIGHT//2 - 40, logo.get_height()//2, WINHEIGHT//2)
-            self.logo = gui.Logo(logo, (WINWIDTH//2, height), num_frames, speed)
+            height = utils.clamp(WINHEIGHT//4 - 40, logo.get_height()//2, WINHEIGHT//4)
+            self.logo = gui.Logo(logo, (WINWIDTH//4, height), num_frames, speed)
         else:
             self.logo = None
 
         self.particles = None
         if DB.constants.value('title_particles'):
-            bounds = (-WINHEIGHT, WINWIDTH, WINHEIGHT, WINHEIGHT + 16)
+            bounds = (-WINHEIGHT//2, WINWIDTH//2, WINHEIGHT//2, WINHEIGHT//2 + 16)
             self.particles = particles.MapParticleSystem('title', particles.Smoke, .075, bounds, (TILEX, TILEY))
             self.particles.prefill()
         game.memory['title_particles'] = self.particles
@@ -108,18 +108,26 @@ class TitleStartState(State):
             game.state.change('transition_to')
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         if self.particles:
             self.particles.update()
-            self.particles.draw(surf)
+            self.particles.draw(new_surf)
         if self.logo:
             self.logo.update()
-            self.logo.draw(surf)
+            self.logo.draw(new_surf)
         if self.press_start:
             self.press_start.update()
-            self.press_start.draw(surf)
-        FONT['text'].blit(text_funcs.translate('_attribution'), surf, (4, WINHEIGHT - 16))
+            self.press_start.draw(new_surf)
+        FONT['text'].blit(text_funcs.translate('_attribution'), new_surf, (4, WINHEIGHT//2 - 16))
+        
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class TitleMainState(State):
@@ -147,7 +155,7 @@ class TitleMainState(State):
         self.particles = game.memory['title_particles']
 
         self.state = 'transition_in'
-        self.position_x = -WINWIDTH//2
+        self.position_x = -WINWIDTH//4
 
         # For fading out to load suspend
         self.background = SPRITES.get('bg_black')
@@ -217,14 +225,14 @@ class TitleMainState(State):
 
         if self.state == 'transition_in':
             self.position_x += 20
-            if self.position_x >= WINWIDTH//2:
-                self.position_x = WINWIDTH//2
+            if self.position_x >= WINWIDTH//4:
+                self.position_x = WINWIDTH//4
                 self.state = 'normal'
 
         elif self.state == 'transition_out':
             self.position_x -= 20
-            if self.position_x <= -WINWIDTH//2:
-                self.position_x = -WINWIDTH//2
+            if self.position_x <= -WINWIDTH//4:
+                self.position_x = -WINWIDTH//4
                 if self.selection == 'Load Game':
                     game.state.change('title_load')
                 elif self.selection == 'Restart Level':
@@ -265,17 +273,24 @@ class TitleMainState(State):
         save.remove_suspend()
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         if self.particles:
             self.particles.update()
-            self.particles.draw(surf)
+            self.particles.draw(new_surf)
         if self.menu:
-            self.menu.draw(surf, center=(self.position_x, WINHEIGHT//2), show_cursor=(self.state == 'normal'))
+            self.menu.draw(new_surf, center=(self.position_x, WINHEIGHT//4), show_cursor=(self.state == 'normal'))
 
         bb = image_mods.make_translucent(self.background, self.transition/100.)
-        surf.blit(bb, (0, 0))
+        new_surf.blit(bb, (0, 0))
 
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class TitleModeState(State):
@@ -358,7 +373,7 @@ class TitleModeState(State):
             text = text_funcs.translate_and_text_evaluate(text, self=option)
             self.dialog = dialog.Dialog(text, num_lines=4, draw_cursor=False)
             self.dialog.position = (140, 34)
-            self.dialog.text_width = WINWIDTH - 142 - 12
+            self.dialog.text_width = WINWIDTH//2 - 142 - 12
             self.dialog.font = FONT['text']
             self.dialog.font_type = 'text'
             self.dialog.font_color = 'white'
@@ -441,17 +456,25 @@ class TitleModeState(State):
             self.dialog.update()
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         if self.particles:
             self.particles.update()
-            self.particles.draw(surf)
+            self.particles.draw(new_surf)
         if self.label:
-            surf.blit(self.label, (142, 36))
+            new_surf.blit(self.label, (142, 36))
         if self.dialog:
-            self.dialog.draw(surf)
+            self.dialog.draw(new_surf)
         if self.menu:
-            self.menu.draw(surf)
+            self.menu.draw(new_surf)
+        
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class TitleLoadState(State):
@@ -468,7 +491,7 @@ class TitleLoadState(State):
     def start(self):
         self.fluid = FluidScroll(128)
         self.state = 'transition_in'
-        self.position_x = int(WINWIDTH * 1.5)
+        self.position_x = int((WINWIDTH * 1.5)//2)
 
         self.bg = game.memory['title_bg']
         self.particles = game.memory['title_particles']
@@ -537,26 +560,34 @@ class TitleLoadState(State):
 
         if self.state == 'transition_in':
             self.position_x -= 20
-            if self.position_x <= WINWIDTH//2:
-                self.position_x = WINWIDTH//2
+            if self.position_x <= WINWIDTH//4:
+                self.position_x = WINWIDTH//4
                 self.state = 'normal'
 
         elif self.state == 'transition_out':
             self.position_x += 20
-            if self.position_x >= int(WINWIDTH * 1.5):
-                self.position_x = int(WINWIDTH * 1.5)
+            if self.position_x >= int((WINWIDTH * 1.5)//2):
+                self.position_x = int((WINWIDTH * 1.5)//2)
                 self.back()
                 self.state = 'transition_in'
                 return 'repeat'
 
     def draw(self, surf):
+        #I remember encountering issues with this draw function and using hard values instead of WINWIDTH and WINHEIGHT as a result
+        #I don't know why that was my response or if anything will break if you change it, but frankly I don't want to find out
+        new_surf = engine.create_surface((240, 160), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         if self.particles:
             self.particles.update()
-            self.particles.draw(surf)
+            self.particles.draw(new_surf)
         if self.menu:
-            self.menu.draw(surf, center=(self.position_x, WINHEIGHT//2))
+            self.menu.draw(new_surf, center=(self.position_x, WINHEIGHT//4))
+        
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (480, 320))
+        surf.blit(new_surf, (0,0))
         return surf
 
 class TitleRestartState(TitleLoadState):
@@ -699,7 +730,7 @@ class TitleNewChildState(State):
     def start(self):
         selection = game.memory['option_owner']
         options = ['Overwrite', 'Back']
-        self.menu = menus.Choice(selection, options, (8, WINHEIGHT - 24))
+        self.menu = menus.Choice(selection, options, (8, WINHEIGHT//2 - 24))
         self.menu.set_horizontal(True)
 
     def take_input(self, event):
@@ -745,7 +776,7 @@ class TitleExtrasState(TitleLoadState):
 
     def start(self):
         self.fluid = FluidScroll(128)
-        self.position_x = int(WINWIDTH * 1.5)
+        self.position_x = int(WINWIDTH//2 * 1.5)
         self.state = 'transition_in'
 
         self.bg = game.memory['title_bg']
@@ -830,7 +861,7 @@ class TitleAllSavesState(TitleLoadState):
     def start(self):
         self.fluid = FluidScroll(128)
         self.state = 'transition_in'
-        self.position_x = int(WINWIDTH * 1.5)
+        self.position_x = int(WINWIDTH//2 * 1.5)
 
         self.bg = game.memory['title_bg']
         self.particles = game.memory['title_particles']
@@ -903,7 +934,7 @@ class TitleSaveState(State):
 
         self.particles = None
         if DB.constants.value('title_particles'):
-            bounds = (-WINHEIGHT, WINWIDTH, WINHEIGHT, WINHEIGHT + 16)
+            bounds = (-WINHEIGHT//2, WINWIDTH//2, WINHEIGHT//2, WINHEIGHT//2 + 16)
             self.particles = particles.MapParticleSystem('title', particles.Smoke, .075, bounds, (TILEX, TILEY))
             self.particles.prefill()
         game.memory['title_particles'] = self.particles

@@ -42,6 +42,7 @@ class InfoMenuPortrait():
                 main_image.blit(blink_image, self.portrait.blinking_offset)
 
         main_image.blit(self.mouth_section, self.portrait.smiling_offset)
+        main_image = engine.transform_scale(main_image, (192, 160))
         return main_image
 
     def update(self):

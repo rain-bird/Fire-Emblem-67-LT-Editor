@@ -212,7 +212,7 @@ class PrepGBAMainState(State):
             disp[idx] = image_mods.make_white(disp[idx], white)
 
         for idx in range(len(disp)):
-            surf.blit(disp[idx], (16 + 80 * idx, WINHEIGHT - 18))
+            surf.blit(disp[idx], (16 + 80 * idx, WINHEIGHT//2 - 18))
 
         return surf    
 

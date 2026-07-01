@@ -121,7 +121,7 @@ class PhaseIn():
     t_end = 240
     t_display = t_begin + t_main + t_end
     black_squares = SPRITES.get('phase_transition')
-    transition_space = engine.create_surface((WINWIDTH, WINHEIGHT//2 - 16), transparent=True)
+    transition_space = engine.create_surface((WINWIDTH//2, WINHEIGHT//4 - 16), transparent=True)
 
     def __init__(self, name):
         self.name = name
@@ -152,6 +152,10 @@ class PhaseIn():
         return engine.get_time() - self.starting_time >= self.t_display
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if not self.starting_time:
             return surf
         current_time = engine.get_time()
@@ -174,7 +178,7 @@ class PhaseIn():
             trans = diff**2
 
         image = image_mods.make_translucent(self.image, trans)
-        surf.blit(image, (offset_x + WINWIDTH//2 - self.image.get_width()//2, WINHEIGHT//2 - self.image.get_height()//2))
+        new_surf.blit(image, (offset_x + WINWIDTH//4 - self.image.get_width()//2, WINHEIGHT//4 - self.image.get_height()//2))
 
         transition_space1 = engine.copy_surface(self.transition_space)
         transition_space2 = engine.copy_surface(self.transition_space)
@@ -192,8 +196,8 @@ class PhaseIn():
             alpha = int(max_opacity - max_opacity * ((time_passed - t_half)/t_half) ** 2)
             t = int(diff * 16)
 
-        for x in range(0, WINWIDTH, 16):
-            for y in range(0, WINHEIGHT//2 - 16, 16):
+        for x in range(0, WINWIDTH//2, 16):
+            for y in range(0, WINHEIGHT//4 - 16, 16):
                 i, j = x//16, y//16
                 k1 = int(t * 1.5 - (i - j%2)/2 + j/2 - 4)
                 k2 = int(t * 1.5 - (i - j%2)/2 + j/2 - 1)
@@ -208,13 +212,16 @@ class PhaseIn():
                 square_surf = engine.subsurface(self.black_squares, (frame2*16, 0, 16, 16)).copy()
                 transition_space2.blit(square_surf, (x, y))
 
-        transition_space1 = engine.subsurface(transition_space1, (0, 0, WINWIDTH, height))
-        transition_space2 = engine.subsurface(transition_space2, (0, self.transition_space.get_height() - height, WINWIDTH, height))
+        transition_space1 = engine.subsurface(transition_space1, (0, 0, WINWIDTH//2, height))
+        transition_space2 = engine.subsurface(transition_space2, (0, self.transition_space.get_height() - height, WINWIDTH//2, height))
 
         engine.fill(transition_space1, (255, 255, 255, alpha), None, engine.BLEND_RGBA_MULT)
         engine.fill(transition_space2, (255, 255, 255, alpha), None, engine.BLEND_RGBA_MULT)
 
-        surf.blit(transition_space1, (0, 0))
-        surf.blit(transition_space2, (0, WINHEIGHT - transition_space2.get_height()))
+        new_surf.blit(transition_space1, (0, 0))
+        new_surf.blit(transition_space2, (0, WINHEIGHT//2 - transition_space2.get_height()))
 
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf

@@ -625,7 +625,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 font = 'narrow'
             else:
                 font = 'text'
-            render_text(self.left_bar, [font], [name], ['brown'], (WINWIDTH//4 + 31, 5 + (8 if crit_flag else 0)), HAlignment.CENTER)
+            render_text(self.left_bar, [font], [name], ['brown'], (WINWIDTH//8 + 31, 5 + (8 if crit_flag else 0)), HAlignment.CENTER)
 
         # Right
         right_color = self.get_color(self.right.team)
@@ -658,7 +658,7 @@ class AnimationCombat(BaseCombat, MockCombat):
                 font = 'narrow'
             else:
                 font = 'text'
-            render_text(self.right_bar, [font], [name], ['brown'], (WINWIDTH//4 - 13, 5 + (8 if crit_flag else 0)), HAlignment.CENTER)
+            render_text(self.right_bar, [font], [name], ['brown'], (WINWIDTH//8 - 13, 5 + (8 if crit_flag else 0)), HAlignment.CENTER)
 
         # Platforms
         if self.left.position:
@@ -782,8 +782,8 @@ class AnimationCombat(BaseCombat, MockCombat):
         true_x, true_y = self.view_pos[0] - game.camera.get_x() + 0.5, self.view_pos[1] - game.camera.get_y() + 0.5
         vb_x = int(vb_multiplier * true_x * TILEWIDTH)
         vb_y = int(vb_multiplier * true_y * TILEHEIGHT)
-        vb_width = int(WINWIDTH - vb_x - (vb_multiplier * (TILEX - true_x)) * TILEWIDTH)
-        vb_height = int(WINHEIGHT - vb_y - (vb_multiplier * (TILEY - true_y)) * TILEHEIGHT)
+        vb_width = int(WINWIDTH//2 - vb_x - (vb_multiplier * (TILEX - true_x)) * TILEWIDTH)
+        vb_height = int(WINHEIGHT//2 - vb_y - (vb_multiplier * (TILEY - true_y)) * TILEHEIGHT)
         self.viewbox = (vb_x, vb_y, vb_width, vb_height)
 
     def start_battle_music(self):
@@ -1077,11 +1077,15 @@ class AnimationCombat(BaseCombat, MockCombat):
         first_main_battle_anim.draw_over(surf, shake, first_offset, self.pan_offset)
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.battle_background:
-            self.battle_background.draw(surf)
+            self.battle_background.draw(new_surf)
         # This code is so ugly, sorry rain
         left_range_offset, right_range_offset, total_shake_x, total_shake_y = \
-            self.draw_ui(surf)
+            self.draw_ui(new_surf)
 
         shake = (-total_shake_x, total_shake_y)
         lp_range_offset = left_range_offset - 20
@@ -1097,17 +1101,17 @@ class AnimationCombat(BaseCombat, MockCombat):
                 else:  # Normal right anim
                     anim_order = [(self.left_battle_anim, left_range_offset, self.lp_battle_anim, lp_range_offset),
                                   (self.right_battle_anim, right_range_offset, self.rp_battle_anim, rp_range_offset)]
-                self.draw_battle_anims(surf, shake, anim_order, y_offset)
+                self.draw_battle_anims(new_surf, shake, anim_order, y_offset)
             # Right partner is main boi
             elif self.rp_battle_anim and self.current_battle_anim is self.rp_battle_anim:
                 anim_order = [(self.left_battle_anim, left_range_offset, self.lp_battle_anim, lp_range_offset),
                               (self.rp_battle_anim, right_range_offset, self.right_battle_anim, rp_range_offset)]
-                self.draw_battle_anims(surf, shake, anim_order, y_offset)
+                self.draw_battle_anims(new_surf, shake, anim_order, y_offset)
             # Left partner is main boi
             elif self.lp_battle_anim and self.current_battle_anim is self.lp_battle_anim:
                 anim_order = [(self.right_battle_anim, right_range_offset, self.rp_battle_anim, rp_range_offset),
                               (self.lp_battle_anim, left_range_offset, self.left_battle_anim, lp_range_offset)]
-                self.draw_battle_anims(surf, shake, anim_order, y_offset)
+                self.draw_battle_anims(new_surf, shake, anim_order, y_offset)
             # Left is main boi
             else:
                 # Right unit is being guarded right now!
@@ -1117,23 +1121,23 @@ class AnimationCombat(BaseCombat, MockCombat):
                 else:  # Normal left anim
                     anim_order = [(self.right_battle_anim, right_range_offset, self.rp_battle_anim, rp_range_offset),
                                   (self.left_battle_anim, left_range_offset, self.lp_battle_anim, lp_range_offset)]
-                self.draw_battle_anims(surf, shake, anim_order, y_offset)
+                self.draw_battle_anims(new_surf, shake, anim_order, y_offset)
         else:  # When battle hasn't started yet
             anim_order = [(self.left_battle_anim, left_range_offset, self.lp_battle_anim, lp_range_offset),
                           (self.right_battle_anim, right_range_offset, self.rp_battle_anim, rp_range_offset)]
-            self.draw_battle_anims(surf, shake, anim_order, y_offset)
+            self.draw_battle_anims(new_surf, shake, anim_order, y_offset)
 
         # Animations
-        self.draw_anims(surf)
+        self.draw_anims(new_surf)
 
         # Proc Icons
         for proc_icon in self.proc_icons:
             proc_icon.update()
-            proc_icon.draw(surf)
+            proc_icon.draw(new_surf)
         self.proc_icons = [proc_icon for proc_icon in self.proc_icons if not proc_icon.done]
 
         # Damage Numbers
-        self.draw_damage_numbers(surf, (left_range_offset, right_range_offset, total_shake_x, total_shake_y))
+        self.draw_damage_numbers(new_surf, (left_range_offset, right_range_offset, total_shake_x, total_shake_y))
 
         # make the combat ui (nametags & bars) fade out when appropriate
         ui_fade_states = ['name_tags_out', 'all_out', 'entrance',
@@ -1163,12 +1167,12 @@ class AnimationCombat(BaseCombat, MockCombat):
             self.draw_item(right_bar, self.right_item, self.left_item, self.right, self.left, (1, 2 + crit))
         # Stats
         self.draw_stats(left_bar, self.left_stats, (42, 0))
-        self.draw_stats(right_bar, self.right_stats, (WINWIDTH//2 - 3, 0))
+        self.draw_stats(right_bar, self.right_stats, (WINWIDTH//4 - 3, 0))
 
         bar_trans = 52
         left_pos_x = -3 + self.shake_offset[0]
-        left_pos_y = WINHEIGHT - left_bar.get_height() + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]
-        right_pos_x = WINWIDTH // 2 + self.shake_offset[0]
+        left_pos_y = WINHEIGHT//2 - left_bar.get_height() + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]
+        right_pos_x = WINWIDTH//4 + self.shake_offset[0]
         right_pos_y = left_pos_y
         combat_surf.blit(left_bar, (left_pos_x, left_pos_y))
         combat_surf.blit(right_bar, (right_pos_x, right_pos_y))
@@ -1189,28 +1193,30 @@ class AnimationCombat(BaseCombat, MockCombat):
             font.blit_center(text, right_gauge, (18, -1))
             # Pair up info
             if right_gauge:
-                combat_surf.blit(right_gauge, (right_pos_x, WINHEIGHT - 52 + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]))
+                combat_surf.blit(right_gauge, (right_pos_x, WINHEIGHT//2 - 52 + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]))
             if left_gauge:
-                combat_surf.blit(left_gauge, (right_pos_x - 37, WINHEIGHT - 52 + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]))
+                combat_surf.blit(left_gauge, (right_pos_x - 37, WINHEIGHT//2 - 52 + (bar_trans - self.bar_offset * bar_trans) + self.shake_offset[1]))
 
         # Nametag
         top = -60 + self.name_offset * 60 + self.shake_offset[1]
         if self.lp_battle_anim:
             combat_surf.blit(self.lp_name, (left_pos_x, top + 19))
         if self.rp_battle_anim:
-            combat_surf.blit(self.rp_name, (WINWIDTH + 3 - self.rp_name.get_width() + self.shake_offset[0], top + 19))
+            combat_surf.blit(self.rp_name, (WINWIDTH//2 + 3 - self.rp_name.get_width() + self.shake_offset[0], top + 19))
         combat_surf.blit(self.left_name, (left_pos_x, top))
-        combat_surf.blit(self.right_name, (WINWIDTH + 3 - self.right_name.get_width() + self.shake_offset[0], top))
+        combat_surf.blit(self.right_name, (WINWIDTH//2 + 3 - self.right_name.get_width() + self.shake_offset[0], top))
 
         self.color_ui(combat_surf)
-
-        surf.blit(combat_surf, (0, 0))
-
-        self.foreground.draw(surf)
+        new_surf.blit(combat_surf, (0, 0))
+        
+        #Makes the combat scene fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        self.foreground.draw(new_surf)
+        surf.blit(new_surf, (0,0))
 
         if self.bg_black:
             bg_black = image_mods.make_translucent(self.bg_black, self.bg_black_progress)
-            surf.blit(bg_black, (0, 0))
+            new_surf.blit(bg_black, (0, 0))
 
     def draw_item(self, surf, item, other_item, unit, other, topleft):
         icon = icons.get_icon(item)

@@ -119,7 +119,7 @@ class ExpState(State):
                 top = (y - game.camera.get_y() - 1) * TILEHEIGHT
                 pos = (left, top)
             else:
-                pos = (WINWIDTH//2, WINHEIGHT//2)
+                pos = (WINWIDTH//4, WINHEIGHT//4)
             anim = RESOURCES.animations.get('LevelUpMap')
             if anim:
                 anim = Animation(anim, pos)
@@ -356,25 +356,32 @@ class ExpState(State):
                 game.state.back()
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if not self.state:
             return surf
 
         if self.state.get_state() in ('init', 'exp_wait', 'exp_leave', 'exp0', 'exp100', 'exp-100', 'prepare_promote'):
             if self.mana_bar:
-                self.mana_bar.draw(surf)
+                self.mana_bar.draw(new_surf)
             if self.exp_bar:
-                self.exp_bar.draw(surf)
+                self.exp_bar.draw(new_surf)
 
         elif self.state.get_state() == 'level_up':
-            surf.blit(self.dark_fuzz_background, (0, 0))
+            new_surf.blit(self.dark_fuzz_background, (0, 0))
             if self.level_up_animation:
                 self.level_up_animation.update()
-                self.level_up_animation.draw(surf)
+                self.level_up_animation.draw(new_surf)
 
         elif self.state.get_state() == 'level_screen':
             if self.level_up_screen:
-                self.level_up_screen.draw(surf)
-
+                self.level_up_screen.draw(new_surf)
+        
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
     @staticmethod
@@ -461,7 +468,7 @@ class LevelUpScreen():
         return None
 
     def topleft(self):
-        return (6 - self.screen_scroll_offset, WINHEIGHT - 8 - self.height)
+        return (6 - self.screen_scroll_offset, WINHEIGHT//2 - 8 - self.height)
 
     def get_position(self, i, absolute=False):
         tl_offset = (0, 0)
@@ -628,12 +635,12 @@ class LevelUpScreen():
             width = FONT['text-blue'].width(str(text))
             FONT['text-blue'].blit(str(text), sprite, (pos[0] + 40 - width, pos[1]))
 
-        pos = (6 - self.screen_scroll_offset, WINHEIGHT - 8 - self.height)
+        pos = (6 - self.screen_scroll_offset, WINHEIGHT//2 - 8 - self.height)
         surf.blit(sprite, pos)
 
         # Blit unit's pic
-        right = WINWIDTH - 4
-        bottom = WINHEIGHT + self.unit_scroll_offset
+        right = WINWIDTH//2 - 4
+        bottom = WINHEIGHT//2 + self.unit_scroll_offset
         icons.draw_portrait(surf, self.unit, bottomright=(right, bottom))
 
         # Update and draw animations
@@ -660,9 +667,9 @@ class ExpBar():
     def __init__(self, old_exp, center=True):
         self.bg_surf = self.create_bg_surf()
         if center:
-            self.pos = WINWIDTH//2 - self.width//2, WINHEIGHT//2 - self.height//2
+            self.pos = WINWIDTH//4 - self.width//2, WINHEIGHT//4 - self.height//2
         else:
-            self.pos = WINWIDTH//2 - self.width//2, WINHEIGHT - self.height
+            self.pos = WINWIDTH//4 - self.width//2, WINHEIGHT//2 - self.height
 
         self.offset = self.height//2  # Start with fade in
         self.done = False
@@ -705,7 +712,10 @@ class ExpBar():
 
         # Transition
         new_surf = engine.subsurface(new_surf, (0, self.offset, self.width, self.height - self.offset * 2))
-
+        
+        #Now for the scaling: just stretch our surface to fill the screen.
+        #new_surf = engine.transform_scale(new_surf, (self.width*2, (self.height - self.offset * 2)*2))
+        
         surf.blit(new_surf, (self.pos[0], self.pos[1] + self.offset))
         return surf
 

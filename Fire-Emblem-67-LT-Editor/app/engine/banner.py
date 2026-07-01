@@ -65,6 +65,9 @@ class Banner():
 
         self.draw_icon(bg_surf)
 
+        #surf = engine.transform_scale(surf, (self.size[0]*2, self.size[1]*2))
+        bg_surf = engine.transform_scale(bg_surf, (self.size[0]*2 + 4, 56))
+        
         engine.blit_center(surf, bg_surf)
         return surf
 

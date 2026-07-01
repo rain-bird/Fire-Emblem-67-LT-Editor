@@ -123,7 +123,7 @@ class BaseMainState(State):
 
         max_num_options = 9
         num_options = min(len(options), max_num_options)
-        topleft = 4, WINHEIGHT // 2 - (num_options * 16 + 8) // 2
+        topleft = 4, WINHEIGHT // 4 - (num_options * 16 + 8) // 2
         self.menu = menus.Choice(None, options, topleft=topleft)
         self.menu.set_limit(max_num_options)
         self.menu.set_ignore(ignore)
@@ -345,8 +345,8 @@ class SupportDisplay():
         self.unit_nid = None
         self.topleft = (84, 4)
         self.limit = 8
-        self.width = WINWIDTH - 100
-        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT - 8)
+        self.width = WINWIDTH//2 - 100
+        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT//2 - 8)
         shimmer = SPRITES.get('menu_shimmer2')
         self.bg_surf.blit(shimmer, (
             self.bg_surf.get_width() - shimmer.get_width() - 1, self.bg_surf.get_height() - shimmer.get_height() - 5))
@@ -899,8 +899,8 @@ class LoreDisplay():
     def __init__(self):
         self.lore = None
         self.topleft = (84, 4)
-        self.width = WINWIDTH - 84
-        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT - 8, 'menu_bg_brown')
+        self.width = WINWIDTH//2 - 84
+        self.bg_surf = base_surf.create_base_surf(self.width, WINHEIGHT//2 - 8, 'menu_bg_brown')
         shimmer = SPRITES.get('menu_shimmer3')
         self.bg_surf.blit(shimmer, (
             self.bg_surf.get_width() - shimmer.get_width() - 1, self.bg_surf.get_height() - shimmer.get_height() - 5))
@@ -924,7 +924,7 @@ class LoreDisplay():
         for line in text:
             dlg = dialog.Dialog(line, font_type="text", font_color="white", num_lines=8, draw_cursor=False, speed=0)
             dlg.position = self.topleft[0], self.topleft[1] + 12
-            dlg.text_width = WINWIDTH - 100
+            dlg.text_width = WINWIDTH//2 - 100
             dlg.reformat()
             self.dialogs.append(dlg)
         self.num_pages = len(text)
@@ -956,16 +956,16 @@ class LoreDisplay():
             image = self.bg_surf.copy()
             if game.get_unit(self.lore.nid):
                 unit = game.get_unit(self.lore.nid)
-                icons.draw_portrait(image, unit, (self.width - 96, WINHEIGHT - 12 - 80))
+                icons.draw_portrait(image, unit, (self.width - 96, WINHEIGHT//2 - 12 - 80))
             elif self.lore.nid in DB.units:
                 portrait, offset = icons.get_portrait_from_nid(DB.units.get(self.lore.nid).portrait_nid)
-                image.blit(portrait, (self.width - 96, WINHEIGHT - 12 - 80))
+                image.blit(portrait, (self.width - 96, WINHEIGHT//2 - 12 - 80))
 
             render_text(image, ['text'], [self.lore.title], ['blue'], (self.width // 2, 4), HAlignment.CENTER)
 
             if self.num_pages > 1:
                 text = '%d / %d' % (self.page_num + 1, self.num_pages)
-                render_text(image, ['text'], [text], ['yellow'], (self.width - 8, WINHEIGHT - 12 - 16), HAlignment.RIGHT)
+                render_text(image, ['text'], [text], ['yellow'], (self.width - 8, WINHEIGHT//2 - 12 - 16), HAlignment.RIGHT)
 
             surf.blit(image, self.topleft)
 
@@ -1183,7 +1183,7 @@ class BaseRecordsState(State):
                 game.state.change('transition_pop')
             else:
                 self.prev_menu = self.current_menu
-                self.current_offset_y = -WINHEIGHT
+                self.current_offset_y = -WINHEIGHT//2
                 self.prev_offset_y = 1
 
             if self.state == 'unit':
@@ -1200,7 +1200,7 @@ class BaseRecordsState(State):
                 get_sound_thread().play_sfx('Select 1')
                 if self.state in ('records', 'mvp'):
                     self.prev_menu = self.current_menu
-                    self.current_offset_y = WINHEIGHT
+                    self.current_offset_y = WINHEIGHT//2
                     self.prev_offset_y = -1
 
                 if self.state == 'records':
@@ -1217,14 +1217,14 @@ class BaseRecordsState(State):
             if mouse_x <= 16:
                 self.move_left()
                 return True
-            elif mouse_x >= WINWIDTH - 16:
+            elif mouse_x >= WINWIDTH//2 - 16:
                 self.move_right()
                 return True
             elif mouse_y <= 16:
                 get_sound_thread().play_sfx('Select 6')
                 self.current_menu.move_up()
                 return True
-            elif mouse_y >= WINHEIGHT - 16:
+            elif mouse_y >= WINHEIGHT//2 - 16:
                 get_sound_thread().play_sfx('Select 6')
                 self.current_menu.move_down()
                 return True
@@ -1233,7 +1233,7 @@ class BaseRecordsState(State):
     def move_left(self):
         get_sound_thread().play_sfx('Status_Page_Change')
         self.prev_menu = self.current_menu
-        self.current_offset_x = -WINWIDTH
+        self.current_offset_x = -WINWIDTH//2
         self.prev_offset_x = 1
         if self.state == 'records':
             self.state = 'mvp'
@@ -1251,7 +1251,7 @@ class BaseRecordsState(State):
     def move_right(self):
         get_sound_thread().play_sfx('Status_Page_Change')
         self.prev_menu = self.current_menu
-        self.current_offset_x = WINWIDTH
+        self.current_offset_x = WINWIDTH//2
         self.prev_offset_x = -1
         if self.state == 'records':
             self.state = 'mvp'
@@ -1280,7 +1280,7 @@ class BaseRecordsState(State):
                 self.prev_offset_x += 16
             elif self.prev_offset_x < 0:
                 self.prev_offset_x -= 16
-            if self.prev_offset_x > WINWIDTH or self.prev_offset_x < -WINWIDTH:
+            if self.prev_offset_x > WINWIDTH//2 or self.prev_offset_x < -WINWIDTH//2:
                 self.prev_offset_x = 0
                 self.prev_menu = None
 
@@ -1294,7 +1294,7 @@ class BaseRecordsState(State):
                 self.prev_offset_y += 16
             elif self.prev_offset_y < 0:
                 self.prev_offset_y -= 16
-            if self.prev_offset_y > WINHEIGHT or self.prev_offset_y < -WINHEIGHT:
+            if self.prev_offset_y > WINHEIGHT//2 or self.prev_offset_y < -WINHEIGHT//2:
                 self.prev_offset_y = 0
                 self.prev_menu = None
 
@@ -1715,8 +1715,12 @@ class BaseSoundRoomState(State):
             self.menu.update()
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
 
         player = 'sound_player'
         music = ''
@@ -1728,12 +1732,16 @@ class BaseSoundRoomState(State):
             if song_prefab.battle_full_path:
                 player += '_variant'
 
-        surf.blit(SPRITES.get(player), (8, 56))
+        new_surf.blit(SPRITES.get(player), (8, 56))
 
         if self.playing:
-            self.draw_volume(surf)
-        self.menu.draw(surf)
-        self.draw_sound_room_title(surf, (WINWIDTH//2, 22), music)
+            self.draw_volume(new_surf)
+        self.menu.draw(new_surf)
+        self.draw_sound_room_title(new_surf, (WINWIDTH//4, 22), music)
+        
+        #Now for the scaling: just stretch our surface to fill the screen and then draw it
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
     def draw_sound_room_title(self, surf, center, music_name):

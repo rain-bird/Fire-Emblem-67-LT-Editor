@@ -247,7 +247,7 @@ class Controls(menus.Simple):
     def __init__(self, owner, options, background, icons, info=None):
         self.icons = icons
         super().__init__(owner, options, None, background, info)
-        self.set_limit((WINHEIGHT - 64)// 16)
+        self.set_limit((WINHEIGHT//2 - 64)// 16)
 
     def create_options(self, options, info_descs=None):
         self.options.clear()
@@ -267,7 +267,7 @@ class Controls(menus.Simple):
         pass
 
     def draw(self, surf, get_input=False):
-        topleft = ((WINWIDTH - self.get_menu_width()) // 2, (WINHEIGHT - self.get_menu_height()) // 2 + 8)
+        topleft = ((WINWIDTH//2 - self.get_menu_width()) // 2, (WINHEIGHT//2 - self.get_menu_height()) // 2 + 8)
         bg_surf = base_surf.create_base_surf(self.get_menu_width(), self.get_menu_height(), self.background)
         bg_surf = image_mods.make_translucent(bg_surf, .1)
         surf.blit(bg_surf, topleft)

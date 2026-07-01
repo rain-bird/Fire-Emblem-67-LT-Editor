@@ -70,7 +70,7 @@ class MockCombat():
         self.target_dark = 0
         self.darken_ui_background = 0
         self.foreground = background.Foreground()
-        self.combat_surf = engine.create_surface((WINWIDTH, WINHEIGHT), transparent=True)
+        self.combat_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
 
     def setup_ui(self):
         self.bar_offset = 0
@@ -239,9 +239,9 @@ class MockCombat():
                 self.glancing_hit()
             else:
                 if self.current_battle_anim is self.right_battle_anim:
-                    position = (-110 + WINWIDTH//2 - 120, -30)
+                    position = (-110 + WINWIDTH//4 - 120, -30)
                 else:
-                    position = (-40 + WINWIDTH//2 - 120, -30)
+                    position = (-40 + WINWIDTH//4 - 120, -30)
                 anim_nid = 'HitSpark'
                 animation = RESOURCES.animations.get(anim_nid)
                 if animation:
@@ -256,7 +256,7 @@ class MockCombat():
             anim_nid = 'CritSpark'
             animation = RESOURCES.animations.get(anim_nid)
             if animation:
-                position = (-40 + WINWIDTH//2 - 120, -30)
+                position = (-40 + WINWIDTH//4 - 120, -30)
                 anim = Animation(animation, position)
                 if self.current_battle_anim is self.right_battle_anim:
                     pass
@@ -272,7 +272,7 @@ class MockCombat():
             position = (52, 21)
             team = self.right_team()
         else:
-            position = (WINWIDTH//2, 21)
+            position = (WINWIDTH//4, 21)
             team = self.left_team()
         color = self.get_color(team)
         anim_nid = 'NoDamage%s' % color.capitalize()
@@ -288,7 +288,7 @@ class MockCombat():
             position = (64, 21)
             team = self.right_team()
         else:
-            position = (WINWIDTH//2, 21)
+            position = (WINWIDTH//4, 21)
             team = self.left_team()
         color = self.get_color(team)
         anim_nid = 'GlancingHit%s' % color.capitalize()
@@ -384,8 +384,8 @@ class MockCombat():
             self.darken_ui_background += 1
 
     def draw_ui(self, surf) -> tuple:
-        platform_trans = WINHEIGHT - 72
-        platform_top = WINHEIGHT - 72
+        platform_trans = WINHEIGHT//2 - 72
+        platform_top = WINHEIGHT//2 - 72
         if self.darken_background or self.target_dark:
             bg = image_mods.make_translucent(SPRITES.get('bg_black'), 1 - self.darken_background)
             surf.blit(bg, (0, 0))
@@ -410,11 +410,11 @@ class MockCombat():
         if not self.battle_background or DB.constants.value('battle_platforms'):
             top = platform_top + (platform_trans - self.platform_offset * platform_trans) + total_shake_y
             if self.at_range:
-                surf.blit(self.left_platform, (WINWIDTH // 2 - self.left_platform.get_width() - 11 - self.pan_max + total_shake_x + self.pan_offset, top))
-                surf.blit(self.right_platform, (WINWIDTH // 2 + 11 + self.pan_max + total_shake_x + self.pan_offset, top))
+                surf.blit(self.left_platform, (WINWIDTH//4 - self.left_platform.get_width() - 11 - self.pan_max + total_shake_x + self.pan_offset, top))
+                surf.blit(self.right_platform, (WINWIDTH//4 + 11 + self.pan_max + total_shake_x + self.pan_offset, top))
             else:
-                surf.blit(self.left_platform, (WINWIDTH // 2 - self.left_platform.get_width() + total_shake_x, top))
-                surf.blit(self.right_platform, (WINWIDTH // 2 + total_shake_x, top))
+                surf.blit(self.left_platform, (WINWIDTH//4 - self.left_platform.get_width() + total_shake_x, top))
+                surf.blit(self.right_platform, (WINWIDTH//4 + total_shake_x, top))
         # Animation
         if self.at_range:
             right_range_offset = 24 + self.pan_max
@@ -433,10 +433,10 @@ class MockCombat():
         for damage_num in self.damage_numbers:
             damage_num.update()
             if damage_num.left:
-                x_pos = WINWIDTH//2 - 26 + left_range_offset - total_shake_x + self.pan_offset
+                x_pos = WINWIDTH//4 - 26 + left_range_offset - total_shake_x + self.pan_offset
             else:
-                x_pos = WINWIDTH//2 + 26 + right_range_offset - total_shake_x + self.pan_offset
-            damage_num.draw(surf, (x_pos, WINHEIGHT - 120))
+                x_pos = WINWIDTH//4 + 26 + right_range_offset - total_shake_x + self.pan_offset
+            damage_num.draw(surf, (x_pos, WINHEIGHT//2 - 120))
         self.damage_numbers = [d for d in self.damage_numbers if not d.done]
 
     def draw(self, surf):

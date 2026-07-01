@@ -274,12 +274,16 @@ class Event():
             listener(event)
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         self.animations = [anim for anim in self.animations if not anim.update()]
         for anim in self.animations:
-            anim.draw(surf, offset=(-self.game.camera.get_x(), -self.game.camera.get_y()))
+            anim.draw(new_surf, offset=(-self.game.camera.get_x(), -self.game.camera.get_y()))
 
         if self.background:
-            self.background.draw(surf)
+            self.background.draw(new_surf)
 
         delete = [key for key, portrait in self.portraits.items() if portrait.update()]
         for key in delete:
@@ -287,16 +291,16 @@ class Event():
 
         # draw all uiframework elements
         ui_surf = self.overlay_ui.to_surf()
-        surf.blit(ui_surf, (0, 0))
+        new_surf.blit(ui_surf, (0, 0))
 
         sorted_portraits = sorted(self.portraits.values(), key=lambda x: x.priority)
         for portrait in sorted_portraits:
-            portrait.draw(surf)
+            portrait.draw(new_surf)
 
         # Draw other boxes
         self.other_boxes = [(nid, box) for (nid, box) in self.other_boxes if box.update()]
         for _, box in self.other_boxes:
-            box.draw(surf)
+            box.draw(new_surf)
 
         # Draw text/dialog boxes
         # if self.state == 'dialog':
@@ -309,23 +313,26 @@ class Event():
                     break
             for dialog_box in to_draw:
                 dialog_box.update()
-                dialog_box.draw(surf)
+                dialog_box.draw(new_surf)
 
         # Fade to black
         self._update_transition()
         if self.transition_state:
-            s = engine.create_surface((WINWIDTH, WINHEIGHT), transparent=True)
+            s = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
             if self.transition_background:
                 self.transition_background.draw(s)
                 s = image_mods.make_translucent(s, 1 - self.transition_progress)
             else:
                 s.fill((*self.transition_color, int(255 * self.transition_progress)))
-            surf.blit(s, (0, 0))
+            new_surf.blit(s, (0, 0))
 
         # draw all achievements
         ui_surf = self.foreground_overlay_ui.to_surf()
-        surf.blit(ui_surf, (0, 0))
+        new_surf.blit(ui_surf, (0, 0))
 
+        #Makes the combat scene fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        surf.blit(new_surf, (0,0))
         return surf
 
     def end(self):
