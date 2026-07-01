@@ -22,7 +22,7 @@ The changes to event_functions.py and event_commands.py mean that when using "gi
 
 ### === Shop Changes ===
  - menus.py - Shop: decrement_stock and create_options have been changed so that when an item is out of stock, it will be immediately removed from the list.<br/>
- - general_states.py - ShopState: changed to support the changes to menus.py.<br/>
+ - general_states.py - ShopState: changed to support the changes to menus.py. Also added two new messages for when shops are completely out of stock. They are '%s_bought_out' and '%s_nothing' within the engine's Translations. To support these new messages, two new checks were added to the 'buy' state.<br/>
  - menu_options.py - StockValueItemOption: If an item is in stock its stock number will always display in white, even if the item isn't compatible with the unit accessing the shop.<br/>
 
 ### === Repair Shop Changes ===
@@ -36,8 +36,20 @@ The changes to event_functions.py and event_commands.py mean that when using "gi
 
 Also added a portrait of Merlinus that is used by the Repair Shop.<br/>
 
+### === Pawn Shops ===
+ - menu_options.py - PawnValueItemOption: It works mostly like the regular ValueItemOption but with different handling for buying broken items and selling items without any value.<br/>
+ - general_states.py - PawnShopState: This is a new shop which will only sell items that you have already sold to it yourself. Each item that has been sold to it can only be bought once, and will be added to the purchaser's inventory not as a new generic item, but as the exact original item that was sold to the pawn shop (i.e., it gives the purchaser the item with the original uid).<br/>
+ - menus.py - PawnShop: A new menu that is just a copy/paste of the regular shop menu, albeit modified for the pawn shop's needs.<br/>
+ - state_machine.py - pawn_shop: It's literally just a single line of code.<br/>
+ - event_functions.py - pawn_shop: A new function for opening the pawn shop.<br/>
+ - event_commands.py - PawnShop: A new command so you can open the pawn shop during ordinary events.<br/>
+
+It's worth mentioning that the pawn shop relies on game_vars\['pawn_items'] in order to function, so you can technically mess with the pawn shop's available items within the editor by modifying that game var. I really wouldn't recommend it though.<br/>
+Also I added a portrait of the Money Man from FE6 that is used by the Pawn Shop.<br/>
+
 ### === Combat Changes ===
- - combat_calcs.py - outspeed: Units can only double in combat if they have a skill with the nid "Pursuit." Units that meet this criteria can also get doubled if they have low enough negative Action Speed. HOWEVER; if either unit has a skill with the nid "Wary_Fighter," then doubling can NEVER occur for either unit.<br/>
+ - combat_calcs.py - outspeed: Units can only double in combat if they have a skill component with the nid "pursuit." Units that meet this criteria can also get doubled if they have a low enough negative Action Speed. HOWEVER; if either unit has a skill component with the nid "wary_fighter," then doubling can NEVER occur for either unit.<br/>
+ - special_components.py - Pursuit & Wary_Fighter - Two new skill components that don't technically do anything except tell the combat_calcs that the unit has them.<br/>
 
 Ordinarily I wouldn't dedicate a whole section to one change, but this one was a big one. Also making this function based on nids probably isn't good practice, but it was definitely easy.<br/>
 
