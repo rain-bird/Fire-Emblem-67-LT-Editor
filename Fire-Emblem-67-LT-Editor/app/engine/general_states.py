@@ -3601,8 +3601,7 @@ class PawnShopState(ShopState):
             self.buy_menu.draw(new_surf)
             FONT['text'].blit_center(text_funcs.translate('Item'), new_surf, (80, 64), color='yellow')
             FONT['text'].blit_center(text_funcs.translate('Uses'), new_surf, (128, 64), color='yellow')
-            #FONT['text'].blit_center(text_funcs.translate('Stock'), new_surf, (156, 64), color='yellow')
-            FONT['text'].blit_center(text_funcs.translate('Price'), new_surf, (186, 64), color='yellow')
+            FONT['text'].blit_center(text_funcs.translate('Price'), new_surf, (167, 64), color='yellow')
             if self.buy_menu.info_flag:
                 new_surf = self.buy_menu.vert_draw_info(new_surf)
         if self.state == 'choice' and self.current_msg.is_done_or_wait():

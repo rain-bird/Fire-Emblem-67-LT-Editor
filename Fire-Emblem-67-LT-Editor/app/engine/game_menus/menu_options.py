@@ -611,19 +611,13 @@ class PawnValueItemOption(ValueItemOption):
             else:
                 value_string = '--'
         elif self.disp_value == 'sell':
-            value = 0
-            show_value = False
-            #If the item is a valid broken item, force the game to display its sell price of 0 (the same as FE4). Otherwise it's default.
-            if self.item.broken_price > 0:
-                show_value = True
-            else:
-                value = item_funcs.sell_price(owner, self.item)
-            
-            if value or show_value:
+            value = item_funcs.sell_price(owner, self.item)
+            #Pawn shops will buy anything, so the value should just always show
+            value_color = 'blue'
+            if self.item.value:
                 value_string = str(value)
-                value_color = 'blue'
             else:
-                value_string = '--'
+                value_string = '0'
         render_text(surf, [uses_font], [value_string], [value_color], (x + self.width() - 6, y), HAlignment.RIGHT)
 
 class UnitOption(BasicOption):
