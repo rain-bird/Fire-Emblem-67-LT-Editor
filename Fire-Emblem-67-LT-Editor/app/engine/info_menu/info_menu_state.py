@@ -479,9 +479,10 @@ class InfoMenuState(State):
         weapon = self.unit.get_weapon()
         # Populate battle info
         surf.blit(SPRITES.get('equipment_logo'), (14, 6))
-        render_text(surf, ['text_big'], [text_funcs.translate('Rng')], ['yellow'], (76, 2))
-        rng_desc = text_funcs.translate_and_text_evaluate('Rng_desc', unit=self.unit)
-        self.info_graph.register((78, 252, 56, 16), rng_desc, 'all')
+        
+        render_text(surf, ['text_big'], [text_funcs.translate('AS')], ['yellow'], (76, 2))
+        AS_desc = text_funcs.translate_and_text_evaluate('AS_desc', unit=self.unit)
+        self.info_graph.register((78, 252, 56, 16), AS_desc, 'all')
         render_text(surf, ['text_big'], [text_funcs.translate('Atk')], ['yellow'], (9, 25))
         atk_desc = text_funcs.translate_and_text_evaluate('Atk_desc', unit=self.unit)
         self.info_graph.register((11, 275, 64, 16), atk_desc, 'all')
@@ -493,15 +494,15 @@ class InfoMenuState(State):
             crit_desc = text_funcs.translate_and_text_evaluate('Crit_desc', unit=self.unit)
             self.info_graph.register((78, 275, 56, 16), crit_desc, 'all')
         else:
-            render_text(surf, ['text_big'], [text_funcs.translate('AS')], ['yellow'], (76, 25))
-            AS_desc = text_funcs.translate_and_text_evaluate('AS_desc', unit=self.unit)
-            self.info_graph.register((78, 275, 56, 16), AS_desc, 'all')
+            render_text(surf, ['text_big'], [text_funcs.translate('Rng')], ['yellow'], (76, 25))
+            rng_desc = text_funcs.translate_and_text_evaluate('Rng_desc', unit=self.unit)
+            self.info_graph.register((78, 275, 56, 16), rng_desc, 'all')
         render_text(surf, ['text_big'], [text_funcs.translate('Avd')], ['yellow'], (76, 48))
         avoid_desc = text_funcs.translate_and_text_evaluate('Avoid_desc', unit=self.unit)
         self.info_graph.register((78, 298, 56, 16), avoid_desc, 'all')
 
         if weapon:
-            rng = item_funcs.get_range_string(self.unit, weapon)
+            attack_speed = str(combat_calcs.attack_speed(self.unit, weapon))
             dam = str(combat_calcs.damage(self.unit, weapon))
             acc = str(combat_calcs.accuracy(self.unit, weapon))
             crt = combat_calcs.crit_accuracy(self.unit, weapon)
@@ -510,21 +511,21 @@ class InfoMenuState(State):
             else:
                 crt = str(crt)
         else:
-            rng, dam, acc, crt = '--', '--', '--', '--'
+            attack_speed, dam, acc, crt = '--', '--', '--', '--'
 
-        render_text(surf, ['text_big'], [rng], ['blue'], (136, 2), HAlignment.RIGHT)
+        render_text(surf, ['text_big'], [attack_speed], ['blue'], (136, 2), HAlignment.RIGHT)
         render_text(surf, ['text_big'], [dam], ['blue'], (65, 25), HAlignment.RIGHT)
         render_text(surf, ['text_big'], [acc], ['blue'], (65, 48), HAlignment.RIGHT)
         if DB.constants.value('crit'):
             render_text(surf, ['text_big'], [crt], ['blue'], (136, 25), HAlignment.RIGHT)
         else:  
-            attack_speed = str(combat_calcs.attack_speed(self.unit, weapon))
-            render_text(surf, ['text_big'], [attack_speed], ['blue'], (136, 25), HAlignment.RIGHT)
+            rng = item_funcs.get_range_string(self.unit, weapon)
+            render_text(surf, ['text_big'], [rng], ['blue'], (136, 25), HAlignment.RIGHT)
         avo = str(combat_calcs.avoid(self.unit, weapon))
         if int(avo) > -99:
             render_text(surf, ['text_big'], [avo], ['blue'], (136, 48), HAlignment.RIGHT)
         else:
-            #If a unit's avoid is less than 0, their ass isn't avoiding anything
+            #If a unit's avoid is less than -99, their ass isn't avoiding anything
             render_text(surf, ['text_big'], ['No'], ['blue'], (136, 48), HAlignment.RIGHT)
         
         return surf

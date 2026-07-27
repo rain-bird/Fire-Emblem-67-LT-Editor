@@ -1736,7 +1736,11 @@ class Convoy():
             # Merlinus
             merlinus = game.get_unit("Merlinus") #Gets the Merlinus unit so if their portrait changes mid-game, it'll be reflected here
             convoy_surf = engine.create_surface((96, 80), transparent=True)
-            icons.draw_portrait(convoy_surf, merlinus, (0, 0))
+            try:
+                icons.draw_portrait(convoy_surf, merlinus, (0, 0))
+            except: #The game will crash if Merlinus hasn't been recruited, so we load SoldierBlue instead. It also just makes sense storywise
+                genericPortrait = icons.get_portrait_from_nid("SoldierBlue")
+                convoy_surf.blit(genericPortrait[0], (0,0))
             convoy_surf = engine.subsurface(convoy_surf, (0, 0, 96, 68))
             surf.blit(convoy_surf, (self.topleft[0] + 18, 83))
         
