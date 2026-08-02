@@ -88,20 +88,20 @@ class SettingsMenuState(State):
             top_right_rect = (WINWIDTH//4 + 4, 4, self.header_width, 24)
             # Test left rect
             x, y, width, height = top_left_rect
-            if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+            if x*2 <= mouse_x <= (x + width)*2 and y*2 <= mouse_y <= (y + height)*2:
                 self.current_menu.takes_input = False
                 self.state = 'top_menu_left'
                 return
             # Test right rect
             x, y, width, height = top_right_rect
-            if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+            if x*2 <= mouse_x <= (x + width)*2 and y*2 <= mouse_y <= (y + height)*2:
                 self.current_menu.takes_input = False
                 self.state = 'top_menu_right'
                 return
             current_idxs, current_option_rects = self.current_menu.get_rects()
             for idx, option_rect in zip(current_idxs, current_option_rects):
                 x, y, width, height = option_rect
-                if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+                if x*2 <= mouse_x <= (x + width)*2 and y*2 <= mouse_y <= (y + height)*2:
                     if self.state in ('top_menu_left', 'config'):
                         self.state = 'config'
                     else:

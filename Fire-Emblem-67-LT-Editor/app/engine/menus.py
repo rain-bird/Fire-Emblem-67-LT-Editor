@@ -387,6 +387,8 @@ class Choice(Simple):
 
         self.stationary_cursor = Cursor()
         self.fake_cursor_idx = None
+        
+        self._scale = 1
 
     def set_horizontal(self, val):
         self.horizontal = val
@@ -686,7 +688,7 @@ class Choice(Simple):
         for idx, choice in enumerate(choices):
             top = topleft[1] + 4 + running_height
             left = topleft[0]
-            rect = (left, top, choice.width(), choice.height())
+            rect = (left*self._scale, top*self._scale, choice.width()*self._scale, choice.height()*self._scale)
             rects.append(rect)
             idxs.append(self.scroll + idx)
 
@@ -701,7 +703,7 @@ class Choice(Simple):
         for idx, choice in enumerate(choices):
             top = topleft[1] + 4
             left = topleft[0] + running_width
-            rect = (left, top, choice.width(), choice.height())
+            rect = (left*self._scale, top*self._scale, choice.width()*self._scale, choice.height()*self._scale)
             rects.append(rect)
             idxs.append(idx)
 
@@ -1947,6 +1949,7 @@ class Main(Simple):
         self.current_index = 0
 
         self.center = WINWIDTH//2, WINHEIGHT//2
+        self._scale = 2
 
     @property
     def cursor(self):

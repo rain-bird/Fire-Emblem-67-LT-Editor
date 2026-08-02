@@ -71,7 +71,7 @@ def get_formatted_stat_pages() -> List[Tuple[str, List[Column]]]:
             continue
         first_page.append(
             # truncate the name to 5 digits
-            Column('7%', stat.name, uif.HAlignment.RIGHT, None, lambda unit, nid=stat.nid: unit.get_stat(nid), None,
+            Column('7%', string, uif.HAlignment.RIGHT, None, lambda unit, nid=stat.nid: int(unit.get_stat(nid)/4) if nid == 'MOV' else unit.get_stat(nid), None,
                    get_font=(lambda unit, nid=stat.nid: 'text-blue' if unit.get_stat(nid) < unit.get_stat_cap(nid) else 'text-yellow'))
         )
     all_pages.append(('Character', first_page))
