@@ -392,8 +392,8 @@ class GridChoiceMenu():
         scroll_x, scroll_y = self._scroll
         offset_coord = sel_x - scroll_x, sel_y - scroll_y
         px, py = self._get_pixel_coord_of_coord(offset_coord)
-        px = clamp(px + menu_left, 0, WINWIDTH//self.scale)
-        py = clamp(py + menu_top, 0, WINHEIGHT//self.scale)
+        px = clamp((px + menu_left)*self._scale, 0, WINWIDTH)
+        py = clamp((py + menu_top)*self._scale, 0, WINHEIGHT)
         return (px, py)
         
     def _get_rects(self) -> List[Tuple[int, Tuple[int, int, int, int]]]:
@@ -405,7 +405,7 @@ class GridChoiceMenu():
         for idx, choice in enumerate(choices):
             if self._is_option_visible(idx):
                 left, top = self.get_topleft_of_idx(idx)
-                rect = (left, top, choice.width(), choice.height())
+                rect = (left, top, choice.width()*self._scale, choice.height()*self._scale)
                 indexed_rects.append((idx, rect))
 
         return indexed_rects

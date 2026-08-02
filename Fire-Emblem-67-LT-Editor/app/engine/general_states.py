@@ -915,6 +915,7 @@ class MoveCameraState(State):
             game.state.back()
             return 'repeat'
 
+#Might need to modify this when programming Savior to be the only way to rescue units. We'll see.
 class MenuState(MapState):
     name = 'menu'
     menu = None
@@ -1045,6 +1046,7 @@ class MenuState(MapState):
             game.highlight.display_moves(moves)
         game.highlight.display_aura_highlights(self.cur_unit)
         self.menu = menus.Choice(self.cur_unit, options, info=info_descs)
+        self.menu._scale = 1
         self.menu.set_limit(8)
         self.menu.set_color(['green' if option not in self.normal_options else None for option in options])
 

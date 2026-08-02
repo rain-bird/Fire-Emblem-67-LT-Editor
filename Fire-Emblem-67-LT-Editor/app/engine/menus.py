@@ -148,7 +148,7 @@ class Simple():
     Abstract menu class. Must implement personal draw function
     """
 
-    def __init__(self, owner, options, topleft=None, background='menu_bg_base', info=None):
+    def __init__(self, owner, options, topleft=None, background='menu_bg_base', info=None, scale=2):
         self.owner = owner
         self.topleft = topleft
         self.background = background
@@ -168,9 +168,11 @@ class Simple():
         self.scroll_bar = ScrollBar()
         self.next_scroll_time = 0
         self.draw_cursor = 1  # 0 No draw, 1 Regular, 2 Draw but no move
-
+        
         self.takes_input = True
         self.info_flag = False
+        
+        self._scale = scale
 
     def set_takes_input(self, val):
         self.takes_input = val
@@ -365,7 +367,7 @@ class Simple():
             idxs, option_rects = self.get_rects()
             for idx, option_rect in zip(idxs, option_rects):
                 x, y, width, height = option_rect
-                if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+                if x*self._scale <= mouse_x <= (x + width)*self._scale and y*self._scale <= mouse_y <= (y + height)*self._scale:
                     self.mouse_move(idx)
                     return True
         return False
@@ -1797,7 +1799,7 @@ class Convoy():
             idxs, option_rects = main_menu.get_rects()
             for idx, option_rect in zip(idxs, option_rects):
                 x, y, width, height = option_rect
-                if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+                if x*2 <= mouse_x <= (x + width)*2 and y*2 <= mouse_y <= (y + height)*2:
                     main_menu.mouse_move(idx)
                     did_move = True
 
@@ -1805,7 +1807,7 @@ class Convoy():
                 idxs, option_rects = self.inventory.get_rects()
                 for idx, option_rect in zip(idxs, option_rects):
                     x, y, width, height = option_rect
-                    if x <= mouse_x <= x + width and y <= mouse_y <= y + height:
+                    if x*2 <= mouse_x <= (x + width)*2 and y*2 <= mouse_y <= (y + height)*2:
                         self.inventory.mouse_move(idx)
                         did_move = True
         return did_move
