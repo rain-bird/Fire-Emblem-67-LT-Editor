@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import List, Optional, TYPE_CHECKING
 
 import app.engine.config as cf
@@ -236,6 +237,9 @@ class ItemHelpDialog(HelpDialog):
         self.transition_out = 0
             
         self.item = item
+        self.has_kills = False
+        #self.kill_stars = None
+        #self.kill_remainder = None
         self.unit = self._resolve_unit(self.item, unit_override)
         
         show_name: bool = item_system.show_item_name_in_help_dlg(self.unit, self.item)
@@ -266,11 +270,19 @@ class ItemHelpDialog(HelpDialog):
         weight = self.item.weight.value if self.item.weight else None
         # Get range
         rng = item_funcs.get_range_string(self.unit, self.item)
-
+        
         self.vals = [weapon_rank, rng, weight, might, hit, crit]
-
+        
+        item_desc = self.item.desc #Default description in case weapon can't have kill stars (staves)
+        if might != None:
+            self.has_kills = True
+            #self.kill_stars = min(math.floor(self.item.kills//10),5) #50 kills, or 5 stars, is when kills start adding to Crit
+            #self.kill_remainder = self.item.kills - self.kill_stars
+            item_desc = "\n" + self.item.desc #Creates a space for kill stars
+            self.vals.append(0) #Makes it so the Kill label will be displayed later
+        
         desc = text_funcs.translate_and_text_evaluate(
-            self.item.desc,
+            item_desc,
             unit=self.unit,
             self=self.item)
 
@@ -290,7 +302,9 @@ class ItemHelpDialog(HelpDialog):
             height = 32 + font_height(self.font) * num_lines
             
         height += self.v_offset
-
+        if len(self.item.desc) < 1: #This check makes it so items with an empty description don't display weird
+            height -= 16
+        
         self.help_surf = base_surf.create_base_surf(ITEM_HELP_WIDTH, height, 'help_bg_base')
         self.h_surf = engine.create_surface((ITEM_HELP_WIDTH, height + 3), transparent=True)
 
@@ -347,22 +361,37 @@ class ItemHelpDialog(HelpDialog):
         if self.name_override is not None:
             render_text(help_surf, ['text'], [self.name_override], ['blue'], (8, 6))
             
-        name_positions = [(56, 8), (106, 8), (8, 24), (56, 24), (106, 24)]
+        name_positions = [(56, 8), (106, 8), (8, 24), (56, 24), (106, 24), (8,40)]
         name_positions.reverse()
         val_positions = [(100, 8), (144, 8), (50, 24), (100, 24), (144, 24)]
         val_positions.reverse()
-        names = ['Rng', 'Wt', 'Mt', 'Hit', 'Crit']
+        names = ['Rng', 'Wt', 'Mt', 'Hit', 'Crit', 'Kills']
         for v, n in zip(self.vals[1:], names):
             if v is not None:
                 name_pos = name_positions.pop()
                 render_text(help_surf, [self.text_font], [n], ['yellow'], (name_pos[0], name_pos[1] + self.v_offset))
+                if n == 'Kills': continue #The kill stat uses stars instead of displaying the number
                 val_pos = val_positions.pop()
                 render_text(help_surf, [self.text_font], [str(v)], ['blue'], (val_pos[0], val_pos[1] + self.v_offset), HAlignment.RIGHT)
-
         if self.dlg:
             self.dlg.update()
             self.dlg.draw(help_surf)
-
+        
+        #Draw kill stars if the item has them
+        if self.has_kills:
+            h_offset = 0
+            kills_drawn = 0
+            while kills_drawn < 50:
+                sprite = ''
+                if self.item.kills - kills_drawn > 10:
+                    sprite = 'kill_star_10' #We still have a lot of kills to draw, so just draw a full star
+                else:
+                    sprite = 'kill_star_' + str(max(0,self.item.kills - kills_drawn)) #Draw kill progress
+                help_surf.blit(SPRITES.get(sprite), (40 + h_offset, 40 + self.v_offset))
+                
+                kills_drawn += 10
+                h_offset += 12
+        
         surf = self.final_draw(surf, self.top_left(pos, right), time, help_surf)
         return surf
 

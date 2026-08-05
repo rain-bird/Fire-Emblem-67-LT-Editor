@@ -838,11 +838,28 @@ class InfoMenuState(State):
                 weapon, value = wexp_to_draw[counter]
                 weapon_rank = DB.weapon_ranks.get_rank_from_wexp(value)
                 next_weapon_rank = DB.weapon_ranks.get_next_rank_from_wexp(value)
-                
+
                 # Get the vertical offset
                 offset = counter * 25
+                
+                prof = None
+                prof_bonus = 0
+                #Converts the weapon_proficiency_type and value components
+                for skill in self.unit.skills:
+                    for component in skill.components:
+                        if component.nid == 'weapon_proficiency_type': #Finds if the skill is a weapon proficiency
+                            #Checks if the proficiency component is the right kind of weapon
+                            if component.value == weapon: prof = True
+                            #If the proficiency component is a formatted list, split it up and check for the current weapon type
+                            if "," in component.value:
+                                weapon_profs = component.value.split(",")
+                                if weapon in weapon_profs: prof = True
+                        #If this skill is a weapon proficiency, as well as the right kind of proficiency; use its value
+                        if component.nid == 'weapon_proficiency_value' and prof == True:
+                            prof_bonus = component.value
+                
                 # Draw a big icon from the engine's sprite folder instead of a normal weapon icon
-                icons.draw_big_weapon(surf, weapon, (0, offset + 1))
+                icons.draw_big_weapon(surf, weapon, (0, offset + 1), bonus=prof_bonus)
 
                 # Add text
                 pos = (30, offset)
@@ -854,7 +871,12 @@ class InfoMenuState(State):
                     render_text(surf, ['rank'], [weapon_rank.nid], ['blue'], pos, HAlignment.CENTER)
                 else:
                     render_text(surf, ['text'], [weapon_rank.nid], ['blue'], pos, HAlignment.CENTER)
-                self.info_graph.register((426, 36 + pos[1], width, 16), "%s mastery level: %d" % (DB.weapons.get(weapon).name, value), 'all', first=(counter==0))
+                
+                prof = "Default"
+                if prof_bonus == 1: prof = "Proficient"
+                if prof_bonus == 2: prof = "Masterful"
+                
+                self.info_graph.register((426, 36 + pos[1], width, 16), "%s mastery level: %s" % (DB.weapons.get(weapon).name, prof), 'all', first=(counter==0))
                 counter += 1
                 if counter >= len(wexp_to_draw):
                     break
@@ -894,6 +916,7 @@ class InfoMenuState(State):
                     item_surf.blit(SPRITES.get('equipment_highlight_big'), (8, idx * 23 + 35))
                 item_option = create_item_option(idx, item)
             item_option.draw(item_surf, 8, idx * 23 + 24)
+            #pretty sure line 907 here is what builds each item's help description
             help_dlg = build_dialog_list(equipped_subitem if equipped_subitem else item, PageType.ITEM, unit=self.unit)
             self.info_graph.register((282, idx * 23 + 35, 120, 16), help_dlg, 'all', first=(idx == 0))
         

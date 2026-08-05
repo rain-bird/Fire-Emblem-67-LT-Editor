@@ -192,8 +192,24 @@ class Pursuit(SkillComponent):
     tag = SkillTags.CUSTOM
     author = 'Wittlog'
 
-class Wary_Fighter(SkillComponent):
+class WaryFighter(SkillComponent):
     nid = 'wary_fighter'
     desc = "Prevents both units from doubling. Doesn't affect consecutive strikes like Brave weapons or Astra procs."
     tag = SkillTags.CUSTOM
     author = 'Wittlog'
+
+class ProficiencyType(SkillComponent):
+    nid = 'weapon_proficiency_type'
+    desc = "Tells the game that this unit is proficient with the specified weapon type. The input should be a valid Weapon Type nid.\nThe input can also be a comma delineated list, though only if there's no spaces."
+    tag = SkillTags.CUSTOM
+    author = 'Wittlog'
+    
+    expose = ComponentType.String
+
+class ProficiencyValue(SkillComponent):
+    nid = 'weapon_proficiency_value'
+    desc = "Tells the game how proficient this unit is with the previously specified weapon type. The input should be 1 for Proficiency or 2 for Proficiency+."
+    tag = SkillTags.CUSTOM
+    author = 'Wittlog'
+    
+    expose = ComponentType.Int

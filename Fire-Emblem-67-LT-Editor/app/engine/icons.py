@@ -118,12 +118,20 @@ def draw_weapon(surf, weapon_type, topleft, gray=False):
     surf.blit(image, topleft)
     return surf
 
-def draw_big_weapon(surf, weapon_type, topleft, gray=False):
+def draw_big_weapon(surf, weapon_type, topleft, gray=False, bonus=0):
     w_type_obj = DB.weapons.get(weapon_type)
     if not w_type_obj:
         return surf
+    
     #Get the wexp sprite to draw
     image_name = "wexp_" + w_type_obj.nid
+    #Determines what proficiency icon should be drawn based on how much higher the unit's wexp is than their class's base wexp
+    i = 0
+    while i != bonus: #Could theoretically go to an integer limit number of p's if you really wanted
+        if i == 0: image_name += "_"
+        image_name += "p"
+        i += 1
+    
     image = SPRITES.get(image_name)
     if not image:
         return surf
