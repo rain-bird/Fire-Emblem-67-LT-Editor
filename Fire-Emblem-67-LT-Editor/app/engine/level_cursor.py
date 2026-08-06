@@ -72,6 +72,19 @@ class LevelCursor(BaseCursor):
                 except:
                     logging.error("Region condition {%s} could not be evaluated" % region.condition)
         return None
+    
+    def get_pressable_region(self) -> Optional[RegionObject]:
+        for region in self.game.level.regions:
+            if region.region_type == RegionType.PRESSABLE and region.contains(self.position):
+                try:
+                    truth = evaluate.evaluate(region.condition, position=self.position, local_args={'region': region})
+                    logging.debug("Testing region: %s %s", region.condition, truth)
+                    # No duplicates
+                    if truth:
+                        return region
+                except:
+                    logging.error("Region condition {%s} could not be evaluated" % region.condition)
+        return None
 
     def hide(self):
         super().hide()

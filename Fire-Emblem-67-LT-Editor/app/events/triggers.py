@@ -403,6 +403,15 @@ class Preview(EventTrigger):
     region: RegionObject  #: the name of the region that was triggered
 
 @dataclass(init=True)
+class RegionPress(EventTrigger):
+    """
+    Occurs when the player hovers their cursor over a region and presses 'key_SELECT'.
+    """
+    nid: ClassVar[NID] = 'on_region_press'
+    position: Tuple[int, int]  #: the position of the user's cursor when triggering this event
+    region: RegionObject  #: the name of the region that was triggered
+
+@dataclass(init=True)
 class EventOnHit(EventTrigger):
     """
     Plays before a hit, if the unit will hit with this item.

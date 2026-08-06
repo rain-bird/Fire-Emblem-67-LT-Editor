@@ -12,6 +12,7 @@ class RegionType(str, Enum):
     FOG = 'fog'
     VISION = 'vision'
     TERRAIN = 'terrain'
+    PRESSABLE = 'pressable'
     
 class RegionHighlight(str, Enum):
     NONE = 'none'

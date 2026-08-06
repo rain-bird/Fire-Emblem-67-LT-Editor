@@ -349,6 +349,12 @@ class FreeState(MapState):
                         game.boundary.toggle_unit(cur_unit)
                     else:
                         get_sound_thread().play_sfx('Error')
+            #Pressable event trigger
+            elif region := game.cursor.get_pressable_region():
+                get_sound_thread().play_sfx('Select 1')
+                did_trigger = game.events.trigger(triggers.RegionPress(game.cursor.position, region))
+                if did_trigger and region.only_once:
+                    action.do(action.RemoveRegion(region))
             else:
                 get_sound_thread().play_sfx('Select 2')
                 game.state.change('option_menu')
