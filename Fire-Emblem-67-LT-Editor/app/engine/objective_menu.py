@@ -19,7 +19,7 @@ class ObjectiveMenuState(State):
     surfaces = []
 
     def start(self):
-        self.bg = background.create_background('settings_background')
+        self.bg = background.create_background('default_background_TWO')
         self.surfaces = self.get_surfaces()
         self.fluid = FluidScroll()
         self.menu.set_mode('objective_menu')
@@ -220,8 +220,9 @@ class ObjectiveMenuState(State):
         #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
         new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
         
+        #Draw the background onto the main surf instead of the scaled surf so it doesn't look weird
         if self.bg:
-            self.bg.draw(new_surf)
+            self.bg.draw(surf)
 
         self.menu.draw(new_surf)
 
@@ -252,4 +253,6 @@ class ObjectiveMenuState(State):
         
         #Now for the scaling: just stretch our surface to fill the screen.
         new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
-        return new_surf
+        #Draws the scaled surf onto the main surf so both can appear
+        surf.blit(new_surf,(0,0))
+        return surf

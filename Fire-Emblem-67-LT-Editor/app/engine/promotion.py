@@ -20,7 +20,7 @@ class PromotionChoiceState(State):
 
     def __init__(self, name=None):
         self.name = name
-        self.bg = background.create_background('settings_background')
+        self.bg = background.create_background('default_background_TWO')
 
     def _get_choices(self):
         self.class_options = game.memory.get('promo_options', None) or self.unit_klass.turns_into
@@ -182,32 +182,40 @@ class PromotionChoiceState(State):
     def draw(self, surf):
         if not self.started:
             return surf
-
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
+        #Draw the background onto the main surf instead of the scaled surf so it doesn't look weird
         self.bg.draw(surf)
 
-        top = WINHEIGHT - 72
-        surf.blit(self.left_platform, (WINWIDTH//2 - self.left_platform.get_width() + self.anim_offset + 52, top))
-        surf.blit(self.right_platform, (WINWIDTH//2 + self.anim_offset + 52, top))
+        top = WINHEIGHT//2 - 72
+        new_surf.blit(self.left_platform, (WINWIDTH//4 - self.left_platform.get_width() + self.anim_offset + 52, top))
+        new_surf.blit(self.right_platform, (WINWIDTH//4 + self.anim_offset + 52, top))
         anim = self.animations[self.menu.get_current_index()]
         if anim:
-            anim.draw(surf, (self.anim_offset + 12, 0))
+            anim.draw(new_surf, (self.anim_offset + 12, 0))
 
         # Class Reel
-        FONT['class'].blit(self.menu.get_current(), surf, (114, 5))
+        FONT['class'].blit(self.menu.get_current(), new_surf, (114, 5))
 
         # Weapon Icons
         for idx, weapon in enumerate(self.weapon_icons[self.menu.get_current_index()]):
-            icons.draw_weapon(surf, weapon, (130 + 16 * idx, 32))
+            icons.draw_weapon(new_surf, weapon, (130 + 16 * idx, 32))
 
         if self.menu:
-            self.menu.draw(surf)
+            self.menu.draw(new_surf)
         if self.child_menu:
-            self.child_menu.draw(surf)
+            self.child_menu.draw(new_surf)
 
-        surf.blit(SPRITES.get('promotion_description'), (6, 112))
+        new_surf.blit(SPRITES.get('promotion_description'), (6, 112))
         if self.current_desc:
-            self.current_desc.draw(surf)
-
+            self.current_desc.draw(new_surf)
+        
+        #Now for the scaling: just stretch our surface to fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        #Draws the scaled surf onto the main surf so both can appear
+        surf.blit(new_surf,(0,0))
         return surf
 
 class ClassChangeChoiceState(PromotionChoiceState):
@@ -342,30 +350,39 @@ class PromotionState(State, MockCombat):
             return 'repeat'
 
     def draw(self, surf):
+        #Draw the background onto the main surf instead of the scaled surf so it doesn't look weird
         if self.bg:
             self.bg.draw(surf)
         else:
             return surf
+        
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        #This is why we also halved every original reference to WINWIDTH and WINHEIGHT
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
 
         combat_surf = engine.copy_surface(self.combat_surf)
 
         # Platforms
-        top = WINHEIGHT - 72
-        combat_surf.blit(self.left_platform, (WINWIDTH//2 - self.left_platform.get_width(), top))
-        combat_surf.blit(self.right_platform, (WINWIDTH//2, top))
+        top = WINHEIGHT//2 - 72
+        combat_surf.blit(self.left_platform, (WINWIDTH//4 - self.left_platform.get_width(), top))
+        combat_surf.blit(self.right_platform, (WINWIDTH//4, top))
 
         # Name Tag
-        combat_surf.blit(self.name_tag, (WINWIDTH + 3 - self.name_tag.get_width(), 0))
+        combat_surf.blit(self.name_tag, (WINWIDTH//2 + 3 - self.name_tag.get_width(), 0))
 
         self.color_ui(combat_surf)
 
-        surf.blit(combat_surf, (0, 0))
+        new_surf.blit(combat_surf, (0, 0))
 
         if self.current_battle_anim:
-            self.current_battle_anim.draw(surf)
+            self.current_battle_anim.draw(new_surf)
 
-        self.foreground.draw(surf)
-
+        self.foreground.draw(new_surf)
+        
+        #Now for the scaling: just stretch our surface to fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        #Draws the scaled surf onto the main surf so both can appear
+        surf.blit(new_surf,(0,0))
         return surf
 
 class ClassChangeState(PromotionState):

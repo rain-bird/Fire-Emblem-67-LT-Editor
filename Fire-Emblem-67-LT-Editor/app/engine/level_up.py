@@ -549,7 +549,11 @@ class LevelUpScreen():
                 spark_anim = self.make_spark(spark_pos)
                 if spark_anim:
                     self.animations.append(spark_anim)
-
+                
+                #If the current stat is the last stat, then it's movement. And movement must be divided by 4 to maintain the illusion of being smaller
+                if self.current_spark == len(self.stat_list)-1:
+                    increase//=4
+                
                 if increase > 0:
                     anim = RESOURCES.animations.get('LevelUpNumber' + str(increase))
                 elif increase < 0:
@@ -632,6 +636,8 @@ class LevelUpScreen():
             name = DB.stats.get(stat).name
             render_text(sprite, ['text'], [name], ['yellow'], pos)
             text = self.unit.stats[stat] - (self.stat_list[idx] if self.current_spark < idx else 0)
+            if name == 'Move': #Maintains the movement value illusion
+                text//=4
             width = FONT['text-blue'].width(str(text))
             FONT['text-blue'].blit(str(text), sprite, (pos[0] + 40 - width, pos[1]))
 

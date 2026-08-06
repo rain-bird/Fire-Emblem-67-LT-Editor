@@ -157,9 +157,9 @@ class SkillIcon():
             surf.blit(self.image, pos)
         else:
             if self.center:
-                x_pos = (WINWIDTH - 26 - self.text_width + self.left_pos)//2
+                x_pos = (WINWIDTH//2 - 26 - self.text_width + self.left_pos)//2
             elif self.right:
-                x_pos = WINWIDTH - 26 - self.text_width + self.left_pos
+                x_pos = WINWIDTH//2 - 26 - self.text_width + self.left_pos
             else:
                 x_pos = self.left_pos + 4
             surf.blit(self.image, (x_pos, 32))

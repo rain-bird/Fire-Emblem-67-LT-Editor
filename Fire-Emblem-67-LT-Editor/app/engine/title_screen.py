@@ -1043,14 +1043,22 @@ class TitleSaveState(State):
                 self.go_to_next_level(make_save=True)
 
     def draw(self, surf):
+        #In order to make surfaces scale properly, we have to make them into a new surface that is half the size of the screen
+        new_surf = engine.create_surface((WINWIDTH//2, WINHEIGHT//2), transparent=True)
+        
         if self.bg:
-            self.bg.draw(surf)
+            self.bg.draw(new_surf)
         if self.particles:
             self.particles.update()
-            self.particles.draw(surf)
+            self.particles.draw(new_surf)
         if self.menu:
             if 100 < engine.get_time() - self.wait_time < 200:
-                self.menu.draw(surf, flicker=True)
+                self.menu.draw(new_surf, center=(WINWIDTH//4, WINHEIGHT//4), flicker=True)
             else:
-                self.menu.draw(surf)
+                self.menu.draw(new_surf, center=(WINWIDTH//4, WINHEIGHT//4))
+        
+        #Now for the scaling: just stretch our surface to fill the screen.
+        new_surf = engine.transform_scale(new_surf, (WINWIDTH, WINHEIGHT))
+        #Draws the scaled surf onto the main surf so both can appear
+        surf.blit(new_surf,(0,0))
         return surf
