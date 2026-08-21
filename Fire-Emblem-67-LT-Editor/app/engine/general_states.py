@@ -24,7 +24,7 @@ from app.engine import engine, action, menus, image_mods, \
     text_funcs, equations, evaluate, supports
 from app.engine.combat import base_combat, interaction
 from app.engine.selection_helper import SelectionHelper
-from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES, TradeAbility, SupplyAbility
+from app.engine.abilities import ABILITIES, PRIMARY_ABILITIES, OTHER_ABILITIES, RESCUE_ABILITIES, TradeAbility, SupplyAbility
 from app.engine.input_manager import get_input_manager
 from app.engine.fluid_scroll import FluidScroll
 import threading
@@ -983,9 +983,24 @@ class MenuState(MapState):
                         self.valid_regions.append(region)
                 except:
                     logging.error("Region condition {%s} could not be evaluated" % region.condition)
-
+        
+        # Find if the unit is allowed to rescue now so our life is easier later.
+        allowed_to_rescue = False
+        # If rescuing is restricted, check if the unit has a skill that allows them to rescue
+        if DB.constants.value('restrict_rescuing'):
+            for skill in self.cur_unit.skills:
+                for component in skill.components:
+                    if component.nid == 'allowed_to_rescue':
+                        allowed_to_rescue = True
+                        break
+                if allowed_to_rescue: break
+        else: #Rescuing isn't restricted so rescuing is always allowed
+            allowed_to_rescue = True
+        
         # Handle regular ability options (give, drop, rescue, take, item, supply, trade, etc...)
         for ability in OTHER_ABILITIES:
+            # Skips the current ability if it is a rescue ability and the unit isn't allowed to rescue
+            if ability in RESCUE_ABILITIES and not allowed_to_rescue: continue
             t = ability.targets(self.cur_unit)
             self.target_dict[ability.name] = ability
             if t:

@@ -285,3 +285,8 @@ class StatusInflictTerrain(SkillComponent):
     
     def terrain_move_effect(self, unit, pos, is_final_pos):
         action.do(action.AddSkill(unit, self.value))
+
+class AllowedToRescue(SkillComponent):
+    nid = 'allowed_to_rescue'
+    desc = "Unit is allowed to use the Rescue command"
+    tag = SkillTags.MOVEMENT
